@@ -147,8 +147,7 @@ function handleActions(action){
       const message = params.filter(param => param.name == 'message')[0].value;
       console.log(services)
       services.value.forEach((service) => {
-         console.log(service)
-        pdTriggerEvent(service,message);
+        pdTriggerEvent(service,message).then((res) => console.log(res));
       })
     }
   }
