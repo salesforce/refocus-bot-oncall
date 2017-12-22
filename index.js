@@ -21,6 +21,7 @@ const http = require('http');
 const env = process.env.NODE_ENV || 'dev';
 const PORT = process.env.PORT || 5000;
 const socketToken = process.env.SOCKET_TOKEN;
+const pdToken = process.env.PD_TOKEN;
 const config = require('./config.js')[env];
 const packageJSON = require('./package.json');
 const bdk = require('@salesforce/refocus-bdk')(config);
@@ -42,7 +43,7 @@ function pdServices(offset){
   return new Promise((resolve, reject) => {
     request
       .get('https://api.pagerduty.com/services?limit=100&offset='+offset)
-      .set('Authorization', 'Token token=FVVd455srYnXbwwYkAFz')
+      .set('Authorization', `Token token=${pdToken}`)
       .set('Accept', 'application/vnd.pagerduty+json;version=2')
       .end((error, res) => {
         resolve(res);
@@ -84,7 +85,7 @@ function pdTriggerEvent(group, message){
     request
     .post('https://api.pagerduty.com/incidents')
     .send(obj)
-    .set('Authorization', 'Token token=FVVd455srYnXbwwYkAFz')
+    .set('Authorization', `Token token=${pdToken}`)
     .set('Accept', 'application/vnd.pagerduty+json;version=2')
     .set('From', 'tausif.muzaffar@salesforce.com')
     .end((error, res) => {
