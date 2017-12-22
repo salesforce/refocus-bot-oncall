@@ -12,7 +12,6 @@
  * This code handles will listen to refocus and handle any activity
  * that requires the bot server attention.
  */
-'use strict';
 
 const express = require('express');
 const request = require('superagent');
@@ -29,7 +28,7 @@ const bdk = require('@salesforce/refocus-bdk')(config);
 // Installs / Updates the Bot
 bdk.installOrUpdateBot(packageJSON);
 
-//Event Handling
+// Event Handling
 bdk.refocusConnect(app, socketToken);
 app.on('refocus.events', handleEvents);
 app.on('refocus.bot.actions', handleActions);
@@ -83,14 +82,14 @@ function pdTriggerEvent(group, message){
 
   return new Promise((resolve, reject) => {
     request
-    .post('https://api.pagerduty.com/incidents')
-    .send(obj)
-    .set('Authorization', `Token token=${pdToken}`)
-    .set('Accept', 'application/vnd.pagerduty+json;version=2')
-    .set('From', 'tausif.muzaffar@salesforce.com')
-    .end((error, res) => {
-      resolve(res);
-    });
+      .post('https://api.pagerduty.com/incidents')
+      .send(obj)
+      .set('Authorization', `Token token=${pdToken}`)
+      .set('Accept', 'application/vnd.pagerduty+json;version=2')
+      .set('From', 'tausif.muzaffar@salesforce.com')
+      .end((error, res) => {
+        resolve(res);
+      });
   });
 }
 
@@ -132,8 +131,9 @@ function handleData(data){
  */
 function handleActions(action){
   console.log('Bot Action Activity', action.name);
-  if(action.name === 'getServices'){
-    if(!action.response && action.isPending){
+
+  if (action.name === 'getServices'){
+    if (!action.response && action.isPending){
       const id = action.id;
       getServices(0).then(function(result) {
         bdk.respondBotAction(id, result);
@@ -141,8 +141,8 @@ function handleActions(action){
     }
   }
 
-  if(action.name === 'pagerServices'){
-    if(!action.response && action.isPending){
+  if (action.name === 'pagerServices'){
+    if (!action.response && action.isPending){
       const id = action.id;
       const params = action.parameters;
       const services = params.filter(param => param.name == 'services')[0];
