@@ -37,21 +37,21 @@ app.on('refocus.room.settings', handleSettings);
 
 let services = [];
 let serviceMap = {};
+
 function pdServices(offset){
   return new Promise((resolve, reject) => {
     request
-    .get('https://api.pagerduty.com/services?limit=100&offset='+offset)
-    .set('Authorization', 'Token token=FVVd455srYnXbwwYkAFz')
-    .set('Accept', 'application/vnd.pagerduty+json;version=2')
-    .end((error, res) => {
-      resolve(res);
-    });
+      .get('https://api.pagerduty.com/services?limit=100&offset='+offset)
+      .set('Authorization', 'Token token=FVVd455srYnXbwwYkAFz')
+      .set('Accept', 'application/vnd.pagerduty+json;version=2')
+      .end((error, res) => {
+        resolve(res);
+      });
   });
 }
 
 function getServices(offset) {
   return pdServices(offset).then(function(result) {
-    console.log(result);
     if (result.body.more) {
       services = services.concat(result.body.services);
       return getServices(offset+100);
