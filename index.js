@@ -15,25 +15,25 @@
 'use strict';
 
 const express = require('express');
+const request = require('superagent');
 const app = express();
 const http = require('http');
 const env = process.env.NODE_ENV || 'dev';
 const PORT = process.env.PORT || 5000;
-const token = process.env.AUTH_TOKEN;
+const socketToken = process.env.SOCKET_TOKEN;
 const config = require('./config.js')[env];
+const packageJSON = require('./package.json');
+const bdk = require('@salesforce/refocus-bdk')(config);
 
-const install = require('./lib/install.js');
-const io = require('socket.io-client');
-const bdk = require('./lib/refocus-bdk.js');
-const request = require('superagent');
+// Installs / Updates the Bot
+bdk.installOrUpdateBot(packageJSON);
 
-bdk.refocusConnect(app, token);
-
+//Event Handling
+bdk.refocusConnect(app, socketToken);
 app.on('refocus.events', handleEvents);
 app.on('refocus.bot.actions', handleActions);
 app.on('refocus.bot.data', handleData);
 app.on('refocus.room.settings', handleSettings);
-
 
 let services = [];
 let serviceMap = {};
@@ -51,6 +51,7 @@ function pdServices(offset){
 
 function getServices(offset) {
   return pdServices(offset).then(function(result) {
+    console.log(result);
     if (result.body.more) {
       services = services.concat(result.body.services);
       return getServices(offset+100);

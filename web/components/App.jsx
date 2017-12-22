@@ -4,7 +4,9 @@ import 'react-select/dist/react-select.css';
 const React=require('react');
 const ToastMessage=require('./ToastMessage.jsx');
 const botName = require('../../package.json').name;
-const bdk = require('../../lib/refocus-bdk.js');
+const env = process.env.NODE_ENV || 'dev';
+const config = require('../../config.js')[env];
+const bdk = require('@salesforce/refocus-bdk')(config);
 
 class App extends React.Component{
 

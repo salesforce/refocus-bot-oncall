@@ -19,8 +19,11 @@ var _ = require('lodash');
 var React = require('react');
 var ReactDOM = require('react-dom');
 var App = require('./components/App.jsx');
-const bdk = require('../lib/refocus-bdk.js');
+
 const botName = require('../package.json').name;
+const env = process.env.NODE_ENV || 'dev';
+const config = require('../config.js')[env];
+const bdk = require('@salesforce/refocus-bdk')(config);
 
 var ROOMID = window.location.pathname.split('rooms/').length > 1 ? parseInt(window.location.pathname.split(
   'rooms/')[1]) : 2; //This is a temperary fix
@@ -83,6 +86,7 @@ function getServices(){
     "isPending": true,
     "parameters": []
   };
+
   return bdk.createBotAction(serviceReq);
 }
 
@@ -106,3 +110,5 @@ function renderUI(response){
     document.getElementById(botName)
   );
 }
+
+init();
