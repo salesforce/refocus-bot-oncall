@@ -50,7 +50,6 @@ var config = {
 				'SFDC_USERNAME': JSON.stringify(process.env.SFDC_USERNAME),
 				'SFDC_PASSWORD': JSON.stringify(process.env.SFDC_PASSWORD),
 				'API_TOKEN': JSON.stringify(process.env.API_TOKEN),
-				'PD_TOKEN': JSON.stringify(process.env.PD_TOKEN)
  			}
  		}),
 	]
