@@ -1,8 +1,8 @@
 [![NPM](https://img.shields.io/npm/v/react-select.svg)](https://www.npmjs.com/package/react-select)
+[![CDNJS](https://img.shields.io/cdnjs/v/react-select.svg)](https://cdnjs.com/libraries/react-select)
 [![Build Status](https://travis-ci.org/JedWatson/react-select.svg?branch=master)](https://travis-ci.org/JedWatson/react-select)
 [![Coverage Status](https://coveralls.io/repos/JedWatson/react-select/badge.svg?branch=master&service=github)](https://coveralls.io/github/JedWatson/react-select?branch=master)
 [![Supported by Thinkmill](https://thinkmill.github.io/badge/heart.svg)](http://thinkmill.com.au/?utm_source=github&utm_medium=badge&utm_campaign=react-select)
-[![CDNJS](https://img.shields.io/cdnjs/v/react-select.svg)](https://cdnjs.com/libraries/react-select)
 
 React-Select
 ============
@@ -108,6 +108,10 @@ var options = [
 ```
 Note: the `clearable` prop of the Select component should also be set to `false` to prevent allowing clearing all fields at once
 
+#### Accessibility Note
+
+Selected values aren't focus targets, which means keyboard users can't tab to them, and are restricted to removing them using backspace in order. This isn't ideal and I'm looking at other options for the future; in the meantime if you want to use a custom `valueComponent` that implements tabIndex and keyboard event handling, see #2098 for an example.
+
 ### Async options
 
 If you want to load options asynchronously, use the `Async` export and provide a `loadOptions` Function.
@@ -142,6 +146,10 @@ const getOptions = (input, callback) => {
     loadOptions={getOptions}
 />
 ```
+
+#### Note about filtering async options
+
+The `Async` component doesn't change the default behaviour for filtering the options based on user input, but if you're already filtering the options server-side you may want to customise or disable this feature (see [filtering options](#filtering-options) below)
 
 ### Async options with Promises
 

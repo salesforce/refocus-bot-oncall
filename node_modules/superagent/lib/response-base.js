@@ -1,3 +1,4 @@
+'use strict';
 
 /**
  * Module dependencies.
@@ -44,8 +45,8 @@ function mixin(obj) {
  * @api public
  */
 
-ResponseBase.prototype.get = function(field){
-    return this.header[field.toLowerCase()];
+ResponseBase.prototype.get = function(field) {
+  return this.header[field.toLowerCase()];
 };
 
 /**
