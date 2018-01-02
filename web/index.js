@@ -118,6 +118,7 @@ function getServices(){
  * The actions to take before load.
  */
 function init() {
+  renderUI({}, null);
   getServices();
 }
 

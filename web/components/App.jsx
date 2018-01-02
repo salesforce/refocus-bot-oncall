@@ -1,6 +1,8 @@
 import PropTypes from 'prop-types';
 import Select from 'react-select';
 import 'react-select/dist/react-select.css';
+const _ = require('lodash');
+
 const React=require('react');
 const ToastMessage=require('./ToastMessage.jsx');
 const botName = require('../../package.json').name;
@@ -13,9 +15,9 @@ class App extends React.Component{
   constructor(props){
     super(props);
     this.state={
-      roomId: this.props.roomId,
-      response: this.props.response,
-      services: this.props.services,
+      roomId: props.roomId,
+      response: props.response,
+      services: props.services,
       removeSelected: true,
       disabled: false,
       crazy: false,
@@ -83,7 +85,9 @@ class App extends React.Component{
     }
 
   render(){
+    console.log("render");
     const { services } = this.state;
+    console.log(services);
     const { crazy, disabled, stayOpen, value } = this.state;
     let options = [];
     Object.keys(services).forEach((key) => {
@@ -103,30 +107,40 @@ class App extends React.Component{
     // ];
 
     return (
-      <div className="slds-grid slds-form slds-form_stacked slds-p-horizontal_medium slds-m-bottom_small">
-        <div className="slds-size_1-of-1 slds-form-element slds-col">
-          <div className="slds-form-element__control">
-            <Select
-              closeOnSelect={!stayOpen}
-              disabled={disabled}
-              multi
-              onChange={this.handleSelectChange}
-              options={options}
-              placeholder="Select Groups to Page"
-              removeSelected={this.state.removeSelected}
-              rtl={this.state.rtl}
-              simpleValue
-              value={value}
-            />
+      <div>
+        { (_.isEqual(services, {})) ? (
+          <div role="status" style={{ position: 'relative', top: '50px' }} className="slds-spinner slds-spinner--large slds-spinner--brand">
+            <span className="slds-assistive-text">Loading</span>
+            <div className="slds-spinner__dot-a"></div>
+            <div className="slds-spinner__dot-b"></div>
           </div>
-        </div>
-        <div className="slds-text-align_center slds-col">
-          <button
-            className="slds-button slds-button_brand"
-            /*onClick={() => this.pageGroup(value)}*/>
-            Page
-          </button>
-        </div>
+        ) : (
+          <div className="slds-grid slds-form slds-form_stacked slds-p-horizontal_medium slds-m-bottom_small">
+            <div className="slds-size_1-of-1 slds-form-element slds-col">
+              <div className="slds-form-element__control">
+                <Select
+                  closeOnSelect={!stayOpen}
+                  disabled={disabled}
+                  multi
+                  onChange={this.handleSelectChange}
+                  options={options}
+                  placeholder="Select Groups to Page"
+                  removeSelected={this.state.removeSelected}
+                  rtl={this.state.rtl}
+                  simpleValue
+                  value={value}
+                />
+              </div>
+            </div>
+            <div className="slds-text-align_center slds-col">
+              <button
+                className="slds-button slds-button_brand"
+                /*onClick={() => this.pageGroup(value)}*/>
+                Page
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     );
   }
