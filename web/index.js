@@ -15,19 +15,23 @@
 
 require('../web/dist/public/styles/salesforce-lightning-design-system.css');
 
-var _ = require('lodash');
-var React = require('react');
-var ReactDOM = require('react-dom');
-var App = require('./components/App.jsx');
+const _ = require('lodash');
+const React = require('react');
+const ReactDOM = require('react-dom');
+const App = require('./components/App.jsx');
 
 const botName = require('../package.json').name;
 const env = process.env.NODE_ENV || 'dev';
 const config = require('../config.js')[env];
 const bdk = require('@salesforce/refocus-bdk')(config);
 
-var ROOMID = window.location.pathname.split('rooms/').length > 1 ? parseInt(window.location.pathname.split(
-  'rooms/')[1]) : 2; //This is a temperary fix
-const roomId = parseInt(ROOMID); //ROOMID will be provided from the page DOM
+let currentServices = {};
+const ZERO = 0;
+const ONE = 1;
+
+const ROOMID = window.location.pathname.split('rooms/').length > ONE ? parseInt(window.location.pathname.split(
+  'rooms/')[ONE]) : ONE; // This is a temperary fix
+const roomId = parseInt(ROOMID); // ROOMID will be provided from the page DOM
 
 document.body.addEventListener('init', init, false);
 document.getElementById(botName).addEventListener('refocus.events', handleEvents, false);
@@ -63,6 +67,12 @@ function handleSettings(room) {
  */
 function handleData(data) {
   console.log(botName + ' Bot Data Activity', data);
+
+  if (data.detail.name === 'services'){
+    currentServices = JSON.parse(data.detail.value);
+  }
+
+  renderUI(currentServices, null);
 }
 
 /**
@@ -74,17 +84,34 @@ function handleData(data) {
 function handleActions(action) {
   console.log(botName + ' Bot Action Activity', action);
 
-  renderUI(action.detail.response);
-  bdk.createBotData(roomId, botName, 'services', JSON.stringify(action.detail.response));
+  if (action.detail.name === 'getServices') {
+    bdk.getBotData(roomId)
+      .then((data) => {
+        const _services = data.body.filter(bd => bd.name === 'services')[ZERO];
+        const servicesExist = _services ? true : false;
+
+        if (!_.isEqual(currentServices, action.detail.response)) {
+          currentServices = action.detail.response;
+
+          if (servicesExist) {
+            bdk.changeBotData(_services.id, JSON.stringify(currentServices));
+          } else {
+            bdk.createBotData(roomId, botName, 'services', JSON.stringify(currentServices));
+          }
+        }
+
+        renderUI(currentServices, null);
+      });
+  }
 }
 
 function getServices(){
   const serviceReq = {
-    "name": "getServices",
-    "botId": botName,
-    "roomId": roomId,
-    "isPending": true,
-    "parameters": []
+    'name': 'getServices',
+    'botId': botName,
+    roomId,
+    'isPending': true,
+    'parameters': []
   };
 
   return bdk.createBotAction(serviceReq);
@@ -101,10 +128,11 @@ function init() {
  * @global {Integer} roomId - Room Id that is provided from refocus
  * @return null
  */
-function renderUI(response){
+function renderUI(services, response){
   ReactDOM.render(
     <App
       roomId={ roomId }
+      services={ services }
       response={ response }
     />,
     document.getElementById(botName)
