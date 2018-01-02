@@ -4,7 +4,9 @@ import 'react-select/dist/react-select.css';
 const React=require('react');
 const ToastMessage=require('./ToastMessage.jsx');
 const botName = require('../../package.json').name;
-const bdk = require('../../lib/refocus-bdk.js');
+const env = process.env.NODE_ENV || 'dev';
+const config = require('../../config.js')[env];
+const bdk = require('@salesforce/refocus-bdk')(config);
 
 class App extends React.Component{
 
@@ -13,6 +15,7 @@ class App extends React.Component{
     this.state={
       roomId: this.props.roomId,
       response: this.props.response,
+      services: this.props.services,
       removeSelected: true,
       disabled: false,
       crazy: false,
@@ -28,7 +31,11 @@ class App extends React.Component{
   }
 
   componentWillReceiveProps(nextProps) {
-    this.setState({response: nextProps.response});
+    this.setState({
+      response: nextProps.response,
+      services: nextProps.services
+    });
+
   }
 
   closeToast(){
@@ -76,15 +83,15 @@ class App extends React.Component{
     }
 
   render(){
-    const { response } = this.state;
+    const { services } = this.state;
     const { crazy, disabled, stayOpen, value } = this.state;
     let options = [];
-    Object.keys(response).forEach((key) => {
+    Object.keys(services).forEach((key) => {
       let service = {};
       service.label = key;
-      service.value = response[key];
+      service.value = services[key];
       options.push(service);
-    })
+    });
 
     // const options = [
     //   { label: 'Chocolate', value: 'chocolate' },
@@ -95,7 +102,7 @@ class App extends React.Component{
     //   { label: 'Peppermint', value: 'peppermint' },
     // ];
 
-    return(
+    return (
       <div className="slds-grid slds-form slds-form_stacked slds-p-horizontal_medium slds-m-bottom_small">
         <div className="slds-size_1-of-1 slds-form-element slds-col">
           <div className="slds-form-element__control">
@@ -128,6 +135,7 @@ class App extends React.Component{
 App.propTypes={
   roomId: PropTypes.number,
   response: PropTypes.object,
-}
+  services: PropTypes.object,
+};
 
 module.exports=App;
