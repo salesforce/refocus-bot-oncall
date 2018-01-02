@@ -13,8 +13,6 @@
  * from javascript events.
  */
 
-require('../web/dist/public/styles/salesforce-lightning-design-system.css');
-
 const _ = require('lodash');
 const React = require('react');
 const ReactDOM = require('react-dom');
