@@ -88,12 +88,11 @@ function handleActions(action) {
     bdk.getBotData(roomId)
       .then((data) => {
         const _services = data.body.filter(bd => bd.name === 'services')[ZERO];
-        const servicesExist = _services ? true : false;
 
         if (!_.isEqual(currentServices, action.detail.response)) {
           currentServices = action.detail.response;
 
-          if (servicesExist) {
+          if (_services) {
             bdk.changeBotData(_services.id, JSON.stringify(currentServices));
           } else {
             bdk.createBotData(roomId, botName, 'services', JSON.stringify(currentServices));
