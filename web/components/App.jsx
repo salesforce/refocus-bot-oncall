@@ -2,7 +2,6 @@ import PropTypes from 'prop-types';
 import Select from 'react-select';
 import 'react-select/dist/react-select.css';
 const _ = require('lodash');
-
 const React=require('react');
 const ToastMessage=require('./ToastMessage.jsx');
 const botName = require('../../package.json').name;
@@ -85,9 +84,7 @@ class App extends React.Component{
     }
 
   render(){
-    console.log("render");
     const { services } = this.state;
-    console.log(services);
     const { crazy, disabled, stayOpen, value } = this.state;
     let options = [];
     Object.keys(services).forEach((key) => {
