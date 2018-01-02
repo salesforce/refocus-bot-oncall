@@ -123,7 +123,7 @@ class App extends React.Component{
         <div className="slds-text-align_center slds-col">
           <button
             className="slds-button slds-button_brand"
-            onClick={() => this.pageGroup(value)}>
+            /*onClick={() => this.pageGroup(value)}*/>
             Page
           </button>
         </div>
