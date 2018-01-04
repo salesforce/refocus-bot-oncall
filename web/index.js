@@ -118,7 +118,14 @@ function getServices(){
  * The actions to take before load.
  */
 function init() {
-  renderUI({}, null);
+
+  bdk.getBotData(roomId)
+    .then((data) => {
+      let _services = data.body.filter(bd => bd.name === 'services')[0];
+      currentServices = _services ? JSON.parse(_services.value) : {};
+      renderUI(currentServices, null);
+    })
+
   getServices();
 }
 
