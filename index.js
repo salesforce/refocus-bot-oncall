@@ -30,10 +30,6 @@ bdk.installOrUpdateBot(packageJSON);
 
 // Event Handling
 bdk.refocusConnect(app, socketToken);
-app.on('refocus.events', handleEvents);
-app.on('refocus.bot.actions', handleActions);
-app.on('refocus.bot.data', handleData);
-app.on('refocus.room.settings', handleSettings);
 
 let services = [];
 let serviceMap = {};
@@ -68,14 +64,19 @@ function getServices(offset) {
 function pdTriggerEvent(group, message){
   const obj =
   {
-    "incident":
+    'incident':
     {
-      "type": "incident",
-      "title": message,
-      "service":
+      'type': 'incident',
+      'title': message,
+      'service':
       {
-        "id": group,
-        "type": "service_reference"
+        'id': group,
+        'type': 'service_reference'
+      },
+      'body':
+      {
+        'type': 'incident_body',
+        'details': message
       }
     }
   };
@@ -149,11 +150,16 @@ function handleActions(action){
       const message = params.filter(param => param.name == 'message')[0].value;
       console.log(services)
       services.value.forEach((service) => {
-        pdTriggerEvent(service,message).then((res) => console.log(res));
+        pdTriggerEvent(service, message).then((res) => console.log(res));
       })
     }
   }
 }
+
+app.on('refocus.events', handleEvents);
+app.on('refocus.bot.actions', handleActions);
+app.on('refocus.bot.data', handleData);
+app.on('refocus.room.settings', handleSettings);
 
 app.use(express.static('web/dist'));
 app.get('/*', function(req, res){
