@@ -1,7 +1,6 @@
 import PropTypes from 'prop-types';
 import Select from 'react-select';
 import 'react-select/dist/react-select.css';
-const handlebars=require('handlebars');
 const _ = require('lodash');
 const React=require('react');
 const ToastMessage=require('./ToastMessage.jsx');
