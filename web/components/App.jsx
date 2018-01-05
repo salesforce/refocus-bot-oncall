@@ -14,30 +14,6 @@ class App extends React.Component{
   constructor(props){
     super(props);
 
-    // const data = { 
-    //   elementName: 'Data Broker',
-    //   highUrgency: 'MM - WAS:AJNA_LOCAL.Logbus BytesOneMinuteRate',
-    //   eventName: 'MirrorMakerBytesPerMin HU',
-    //   alert: 'A-1897662',
-    //   alertLink: 'https://gus.my.salesforce.com/a3AB0000000cQMhMAM',
-    //   notificationRule: ' https://gus.my.salesforce.com/apex/SM_AlertNotification?rule=a3gB000000009nVIAQ'
-    // };
-
-    const testData = { 
-      elementName: 'Sample Element Name',
-      highUrgency: 'Sample High-Urgency',
-      eventName: 'Sample Event Name',
-      alert: 'Sample Alert',
-      alertLink: 'https://gus.my.salesforce.com/a3AB0000000cQMhMAM',
-      notificationRule: ' https://gus.my.salesforce.com/apex/SM_AlertNotification?rule=a3gB000000009nVIAQ'
-    };
-
-    const m = `**Element Name**: [{{elementName}}] **High-Urgency**: {{highUrgency}} **Event Name**: {{eventName}}; **Alert** = {{alert}}; **Alert Link** = {{alertLink}}; **Notification Rule** = {{notificationRule}};`;
-    const selTemplate=handlebars.compile(m);
-    const unparsedTemp=selTemplate(testData);
-    const message = unparsedTemp.toString();
-    console.log(message);
-
     this.state={
       roomId: props.roomId,
       response: props.response,
@@ -48,8 +24,9 @@ class App extends React.Component{
       stayOpen: true,
       value: [],
       rtl: false,
-      message: message
+      message: props.message
     };
+
     this.closeToast = this.closeToast.bind(this);
     this.pageGroup = this.pageGroup.bind(this);
     this.handleSelectChange = this.handleSelectChange.bind(this);
@@ -90,24 +67,24 @@ class App extends React.Component{
   }
 
    pageGroup(services){
-      const serviceReq = {
-        "name": "pagerServices",
-        "botId": botName,
-        "roomId": this.state.roomId,
-        "isPending": true,
-        "parameters": [
-          {
-            "name": "services",
-            "value": services,
-          },
-          {
-            "name": "message",
-            "value": this.state.message,
-          },
-        ]
-      };
-      bdk.createBotAction(serviceReq);
-    }
+    const serviceReq = {
+      'name': 'pagerServices',
+      'botId': botName,
+      'roomId': this.state.roomId,
+      'isPending': true,
+      'parameters': [
+        {
+          'name': 'services',
+          'value': services,
+        },
+        {
+          'name': 'message',
+          'value': this.state.message,
+        },
+      ]
+    };
+    bdk.createBotAction(serviceReq);
+  }
 
   render(){
     const { services } = this.state;
@@ -119,15 +96,6 @@ class App extends React.Component{
       service.value = services[key];
       options.push(service);
     });
-
-    // const options = [
-    //   { label: 'Chocolate', value: 'chocolate' },
-    //   { label: 'Vanilla', value: 'vanilla' },
-    //   { label: 'Strawberry', value: 'strawberry' },
-    //   { label: 'Caramel', value: 'caramel' },
-    //   { label: 'Cookies and Cream', value: 'cookiescream' },
-    //   { label: 'Peppermint', value: 'peppermint' },
-    // ];
 
     return (
       <div>
