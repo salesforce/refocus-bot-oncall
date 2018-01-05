@@ -32,7 +32,7 @@ let currentMessage = '';
 const href = window.location.href;
 
 const defaultVariables = { href: href };
-const defaultTemplate = `You have been paged to join an incident room here: {{href}}`;
+const defaultTemplate = `You've been paged to join an incident room: {{href}}`;
 
 const ZERO = 0;
 const ONE = 1;
