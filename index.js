@@ -21,6 +21,7 @@ const env = process.env.NODE_ENV || 'dev';
 const PORT = process.env.PORT || 5000;
 const socketToken = process.env.SOCKET_TOKEN;
 const pdToken = process.env.PD_TOKEN;
+const pdSender = process.env.PD_SENDER;
 const config = require('./config.js')[env];
 const packageJSON = require('./package.json');
 const bdk = require('@salesforce/refocus-bdk')(config);
@@ -87,7 +88,7 @@ function pdTriggerEvent(group, message){
       .send(obj)
       .set('Authorization', `Token token=${pdToken}`)
       .set('Accept', 'application/vnd.pagerduty+json;version=2')
-      .set('From', 'kfoster@salesforce.com')
+      .set('From', pdSender)
       .end((error, res) => {
         resolve(res);
       });
