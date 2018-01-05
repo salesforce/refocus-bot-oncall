@@ -86,7 +86,7 @@ function pdTriggerEvent(group, message){
       .send(obj)
       .set('Authorization', `Token token=${pdToken}`)
       .set('Accept', 'application/vnd.pagerduty+json;version=2')
-      .set('From', 'tausif.muzaffar@salesforce.com')
+      .set('From', 'kfoster@salesforce.com')
       .end((error, res) => {
         resolve(res);
       });
