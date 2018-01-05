@@ -1,6 +1,7 @@
 import PropTypes from 'prop-types';
 import Select from 'react-select';
 import 'react-select/dist/react-select.css';
+const handlebars=require('handlebars');
 const _ = require('lodash');
 const React=require('react');
 const ToastMessage=require('./ToastMessage.jsx');
@@ -10,9 +11,33 @@ const config = require('../../config.js')[env];
 const bdk = require('@salesforce/refocus-bdk')(config);
 
 class App extends React.Component{
-
   constructor(props){
     super(props);
+
+    // const data = { 
+    //   elementName: 'Data Broker',
+    //   highUrgency: 'MM - WAS:AJNA_LOCAL.Logbus BytesOneMinuteRate',
+    //   eventName: 'MirrorMakerBytesPerMin HU',
+    //   alert: 'A-1897662',
+    //   alertLink: 'https://gus.my.salesforce.com/a3AB0000000cQMhMAM',
+    //   notificationRule: ' https://gus.my.salesforce.com/apex/SM_AlertNotification?rule=a3gB000000009nVIAQ'
+    // };
+
+    const testData = { 
+      elementName: 'Sample Element Name',
+      highUrgency: 'Sample High-Urgency',
+      eventName: 'Sample Event Name',
+      alert: 'Sample Alert',
+      alertLink: 'https://gus.my.salesforce.com/a3AB0000000cQMhMAM',
+      notificationRule: ' https://gus.my.salesforce.com/apex/SM_AlertNotification?rule=a3gB000000009nVIAQ'
+    };
+
+    const m = `**Element Name**: [{{elementName}}] **High-Urgency**: {{highUrgency}} **Event Name**: {{eventName}}; **Alert** = {{alert}}; **Alert Link** = {{alertLink}}; **Notification Rule** = {{notificationRule}};`;
+    const selTemplate=handlebars.compile(m);
+    const unparsedTemp=selTemplate(testData);
+    const message = unparsedTemp.toString();
+    console.log(message);
+
     this.state={
       roomId: props.roomId,
       response: props.response,
@@ -23,6 +48,7 @@ class App extends React.Component{
       stayOpen: true,
       value: [],
       rtl: false,
+      message: message
     };
     this.closeToast = this.closeToast.bind(this);
     this.pageGroup = this.pageGroup.bind(this);
@@ -76,7 +102,7 @@ class App extends React.Component{
           },
           {
             "name": "message",
-            "value": "Send from bot.",
+            "value": this.state.message,
           },
         ]
       };
@@ -132,7 +158,7 @@ class App extends React.Component{
             <div className="slds-text-align_center slds-col">
               <button
                 className="slds-button slds-button_brand"
-                /*onClick={() => this.pageGroup(value)}*/>
+                onClick={() => this.pageGroup(value)}>
                 Page
               </button>
             </div>
