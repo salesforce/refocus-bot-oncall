@@ -75,7 +75,7 @@ function handleSettings(room) {
 function handleData(data) {
   console.log(botName + ' Bot Data Activity', data);
 
-  if (data.detail.name === 'onCallServices'){
+  if (data.detail.name === 'onCallBotServices'){
     currentServices = JSON.parse(data.detail.value);
   }
 
@@ -94,7 +94,7 @@ function handleActions(action) {
   if (action.detail.name === 'getServices') {
     bdk.getBotData(roomId)
       .then((data) => {
-        const _services = data.body.filter(bd => bd.name === 'onCallServices')[ZERO];
+        const _services = data.body.filter(bd => bd.name === 'onCallBotServices')[ZERO];
 
         if (!_.isEqual(currentServices, action.detail.response)) {
           currentServices = action.detail.response;
@@ -102,7 +102,7 @@ function handleActions(action) {
           if (_services) {
             bdk.changeBotData(_services.id, JSON.stringify(currentServices));
           } else {
-            bdk.createBotData(roomId, botName, 'onCallServices', JSON.stringify(currentServices));
+            bdk.createBotData(roomId, botName, 'onCallBotServices', JSON.stringify(currentServices));
           }
         }
 
@@ -129,9 +129,9 @@ function getServices() {
 function init() {
   bdk.getBotData(roomId)
     .then((data) => {
-      let _services = data.body.filter(bd => bd.name === 'onCallServices')[ZERO];
-      let _template = data.body.filter(bd => bd.name === 'onCallTemplate')[ZERO];
-      let _variables = data.body.filter(bd => bd.name === 'onCallData')[ZERO];
+      let _services = data.body.filter(bd => bd.name === 'onCallBotServices')[ZERO];
+      let _template = data.body.filter(bd => bd.name === 'onCallBotTemplate')[ZERO];
+      let _variables = data.body.filter(bd => bd.name === 'onCallBotData')[ZERO];
       currentServices = _services ? JSON.parse(_services.value) : {};
       currentVariables = _variables ? JSON.parse(_variables.value) : defaultVariables;
       currentTemplate = _template ? _template.value : defaultTemplate;
@@ -140,11 +140,11 @@ function init() {
       currentMessage = unparsedTemp.toString();
 
       if(!_template) {
-        bdk.createBotData(roomId, botName, 'onCallTemplate', currentTemplate);
+        bdk.createBotData(roomId, botName, 'onCallBotTemplate', currentTemplate);
       }
 
       if(!_variables) {
-        bdk.createBotData(roomId, botName, 'onCallData', JSON.stringify(currentVariables));
+        bdk.createBotData(roomId, botName, 'onCallBotData', JSON.stringify(currentVariables));
       }
 
       renderUI(currentServices, currentMessage, null);
