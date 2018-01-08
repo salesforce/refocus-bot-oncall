@@ -108,6 +108,9 @@ function handleActions(action) {
 
         renderUI(currentServices, currentMessage, null);
       });
+  } else {
+    console.log("hereeeeeeee");
+    renderUI(currentServices, currentMessage, action.detail.response);
   }
 }
 
@@ -127,6 +130,7 @@ function getServices() {
  * The actions to take before load.
  */
 function init() {
+  console.log("ccccc");
   bdk.getBotData(roomId)
     .then((data) => {
       let _services = data.body.filter(bd => bd.name === 'onCallBotServices')[ZERO];

@@ -21,10 +21,12 @@ const env = process.env.NODE_ENV || 'dev';
 const PORT = process.env.PORT || 5000;
 const socketToken = process.env.SOCKET_TOKEN;
 const pdToken = process.env.PD_TOKEN;
-const pdSender = process.env.PD_SENDER;
+const pdSender = 'kfoster@salesforce.com';
 const config = require('./config.js')[env];
 const packageJSON = require('./package.json');
 const bdk = require('@salesforce/refocus-bdk')(config);
+const ZERO = 0;
+const ONE = 1;
 
 // Installs / Updates the Bot
 bdk.installOrUpdateBot(packageJSON);
@@ -137,22 +139,52 @@ function handleActions(action){
   if (action.name === 'getServices'){
     if (!action.response && action.isPending){
       const id = action.id;
-      getServices(0).then(function(result) {
+      getServices(ZERO).then(function(result) {
         bdk.respondBotAction(id, result);
       });
     }
   }
 
   if (action.name === 'pagerServices'){
+    let successfullyPaged = [];
+    let unsuccessfullyPaged = [];
+    let responseText = '';
+
     if (!action.response && action.isPending){
       const id = action.id;
       const params = action.parameters;
-      const services = params.filter(param => param.name == 'services')[0];
-      const message = params.filter(param => param.name == 'message')[0].value;
+      const services = params.filter(param => param.name == 'services')[ZERO];
+      const message = params.filter(param => param.name == 'message')[ZERO].value;
+      const response = {};
       console.log(services)
-      services.value.forEach((service) => {
-        pdTriggerEvent(service, message).then((res) => console.log(res));
-      })
+      services.value.forEach((service, index) => {
+        pdTriggerEvent(service, message).then((res) => {
+          if (res.statusCode === 201) {
+            successfullyPaged.push(res.body.incident.service.summary);
+          } else {
+            unsuccessfullyPaged.push(res.body.incident.service.summary);
+          }
+
+          if (index === services.value.length - ONE) {
+            if (successfullyPaged.length > ZERO) {
+              responseText += 'Paged: ';
+              successfullyPaged.forEach((serviceName) => {
+                responseText += `${serviceName} `;
+              });
+            }
+
+            if (unsuccessfullyPaged.length > ZERO) {
+              responseText += 'Error: ';
+              unsuccessfullyPaged.forEach((serviceName) => {
+                responseText += `${serviceName} `;
+              });
+            }
+
+            response.statusText = responseText;
+            bdk.respondBotAction(id, response);
+          }
+        });
+      });
     }
   }
 }
