@@ -13,9 +13,8 @@
  * from javascript events.
  */
 
-require('../web/dist/public/styles/salesforce-lightning-design-system.css');
-
 const _ = require('lodash');
+const handlebars=require('handlebars');
 const React = require('react');
 const ReactDOM = require('react-dom');
 const App = require('./components/App.jsx');
@@ -26,6 +25,15 @@ const config = require('../config.js')[env];
 const bdk = require('@salesforce/refocus-bdk')(config);
 
 let currentServices = {};
+let currentVariables = {};
+let currentTemplate = '';
+let currentMessage = '';
+
+const href = window.location.href;
+
+const defaultVariables = { href: href };
+const defaultTemplate = `You've been paged to join an incident room: {{href}}`;
+
 const ZERO = 0;
 const ONE = 1;
 
@@ -33,7 +41,6 @@ const ROOMID = window.location.pathname.split('rooms/').length > ONE ? parseInt(
   'rooms/')[ONE]) : ONE; // This is a temperary fix
 const roomId = parseInt(ROOMID); // ROOMID will be provided from the page DOM
 
-document.body.addEventListener('init', init, false);
 document.getElementById(botName).addEventListener('refocus.events', handleEvents, false);
 document.getElementById(botName).addEventListener('refocus.room.settings', handleSettings, false);
 document.getElementById(botName).addEventListener('refocus.bot.data', handleData, false);
@@ -68,11 +75,11 @@ function handleSettings(room) {
 function handleData(data) {
   console.log(botName + ' Bot Data Activity', data);
 
-  if (data.detail.name === 'services'){
+  if (data.detail.name === 'onCallBotServices'){
     currentServices = JSON.parse(data.detail.value);
   }
 
-  renderUI(currentServices, null);
+  renderUI(currentServices, currentMessage, null);
 }
 
 /**
@@ -87,7 +94,7 @@ function handleActions(action) {
   if (action.detail.name === 'getServices') {
     bdk.getBotData(roomId)
       .then((data) => {
-        const _services = data.body.filter(bd => bd.name === 'services')[ZERO];
+        const _services = data.body.filter(bd => bd.name === 'onCallBotServices')[ZERO];
 
         if (!_.isEqual(currentServices, action.detail.response)) {
           currentServices = action.detail.response;
@@ -95,16 +102,16 @@ function handleActions(action) {
           if (_services) {
             bdk.changeBotData(_services.id, JSON.stringify(currentServices));
           } else {
-            bdk.createBotData(roomId, botName, 'services', JSON.stringify(currentServices));
+            bdk.createBotData(roomId, botName, 'onCallBotServices', JSON.stringify(currentServices));
           }
         }
 
-        renderUI(currentServices, null);
+        renderUI(currentServices, currentMessage, null);
       });
   }
 }
 
-function getServices(){
+function getServices() {
   const serviceReq = {
     'name': 'getServices',
     'botId': botName,
@@ -120,6 +127,29 @@ function getServices(){
  * The actions to take before load.
  */
 function init() {
+  bdk.getBotData(roomId)
+    .then((data) => {
+      let _services = data.body.filter(bd => bd.name === 'onCallBotServices')[ZERO];
+      let _template = data.body.filter(bd => bd.name === 'onCallBotTemplate')[ZERO];
+      let _variables = data.body.filter(bd => bd.name === 'onCallBotData')[ZERO];
+      currentServices = _services ? JSON.parse(_services.value) : {};
+      currentVariables = _variables ? JSON.parse(_variables.value) : defaultVariables;
+      currentTemplate = _template ? _template.value : defaultTemplate;
+      const selTemplate=handlebars.compile(currentTemplate);
+      const unparsedTemp=selTemplate(currentVariables);
+      currentMessage = unparsedTemp.toString();
+
+      if(!_template) {
+        bdk.createBotData(roomId, botName, 'onCallBotTemplate', currentTemplate);
+      }
+
+      if(!_variables) {
+        bdk.createBotData(roomId, botName, 'onCallBotData', JSON.stringify(currentVariables));
+      }
+
+      renderUI(currentServices, currentMessage, null);
+    })
+
   getServices();
 }
 
@@ -127,11 +157,12 @@ function init() {
  * @global {Integer} roomId - Room Id that is provided from refocus
  * @return null
  */
-function renderUI(services, response){
+function renderUI(services, message, response){
   ReactDOM.render(
     <App
       roomId={ roomId }
       services={ services }
+      message = { message }
       response={ response }
     />,
     document.getElementById(botName)

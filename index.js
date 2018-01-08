@@ -19,9 +19,8 @@ const app = express();
 const http = require('http');
 const env = process.env.NODE_ENV || 'dev';
 const PORT = process.env.PORT || 5000;
-const socketToken = process.env.SOCKET_TOKEN;
-const pdToken = process.env.PD_TOKEN;
 const config = require('./config.js')[env];
+const { socketToken, pdToken, pdSender } = config;
 const packageJSON = require('./package.json');
 const bdk = require('@salesforce/refocus-bdk')(config);
 
@@ -30,10 +29,6 @@ bdk.installOrUpdateBot(packageJSON);
 
 // Event Handling
 bdk.refocusConnect(app, socketToken);
-app.on('refocus.events', handleEvents);
-app.on('refocus.bot.actions', handleActions);
-app.on('refocus.bot.data', handleData);
-app.on('refocus.room.settings', handleSettings);
 
 let services = [];
 let serviceMap = {};
@@ -68,14 +63,19 @@ function getServices(offset) {
 function pdTriggerEvent(group, message){
   const obj =
   {
-    "incident":
+    'incident':
     {
-      "type": "incident",
-      "title": message,
-      "service":
+      'type': 'incident',
+      'title': message,
+      'service':
       {
-        "id": group,
-        "type": "service_reference"
+        'id': group,
+        'type': 'service_reference'
+      },
+      'body':
+      {
+        'type': 'incident_body',
+        'details': message
       }
     }
   };
@@ -86,7 +86,7 @@ function pdTriggerEvent(group, message){
       .send(obj)
       .set('Authorization', `Token token=${pdToken}`)
       .set('Accept', 'application/vnd.pagerduty+json;version=2')
-      .set('From', 'tausif.muzaffar@salesforce.com')
+      .set('From', pdSender)
       .end((error, res) => {
         resolve(res);
       });
@@ -149,11 +149,16 @@ function handleActions(action){
       const message = params.filter(param => param.name == 'message')[0].value;
       console.log(services)
       services.value.forEach((service) => {
-        pdTriggerEvent(service,message).then((res) => console.log(res));
+        pdTriggerEvent(service, message).then((res) => console.log(res));
       })
     }
   }
 }
+
+app.on('refocus.events', handleEvents);
+app.on('refocus.bot.actions', handleActions);
+app.on('refocus.bot.data', handleData);
+app.on('refocus.room.settings', handleSettings);
 
 app.use(express.static('web/dist'));
 app.get('/*', function(req, res){
