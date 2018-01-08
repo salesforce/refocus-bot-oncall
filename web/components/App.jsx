@@ -23,7 +23,8 @@ class App extends React.Component{
       stayOpen: true,
       value: [],
       rtl: false,
-      message: props.message
+      message: props.message,
+      waiting: false
     };
 
     this.closeToast = this.closeToast.bind(this);
@@ -35,10 +36,13 @@ class App extends React.Component{
 
   componentWillReceiveProps(nextProps) {
     this.setState({
-      response: nextProps.response,
-      services: nextProps.services
+      services: nextProps.services,
+      response: nextProps.response
     });
 
+    if (nextProps.response) {
+      this.setState({ waiting: false});
+    }
   }
 
   closeToast(){
@@ -84,6 +88,7 @@ class App extends React.Component{
     };
 
     bdk.createBotAction(serviceReq);
+    this.setState({ waiting: true })
   }
 
   render(){
@@ -99,36 +104,46 @@ class App extends React.Component{
 
     return (
       <div>
-        { (_.isEqual(services, {})) ? (
+        { (_.isEqual(services, {}) || this.state.waiting) ? (
           <div role="status" style={{ position: 'relative', top: '50px' }} className="slds-spinner slds-spinner--large slds-spinner--brand">
             <span className="slds-assistive-text">Loading</span>
             <div className="slds-spinner__dot-a"></div>
             <div className="slds-spinner__dot-b"></div>
           </div>
         ) : (
-          <div className="slds-grid slds-form slds-form_stacked slds-p-horizontal_medium slds-m-bottom_small">
-            <div className="slds-size_1-of-1 slds-form-element slds-col">
-              <div className="slds-form-element__control">
-                <Select
-                  closeOnSelect={!stayOpen}
-                  disabled={disabled}
-                  multi
-                  onChange={this.handleSelectChange}
-                  options={options}
-                  placeholder="Select Groups to Page"
-                  removeSelected={this.state.removeSelected}
-                  rtl={this.state.rtl}
-                  simpleValue
-                  value={value}
-                />
+
+          <div>
+
+            <ToastMessage
+              message={"Test"}
+              removeToastHandler={this.removeToastHandler}
+            />
+
+
+            <div className="slds-grid slds-form slds-form_stacked slds-p-horizontal_medium slds-m-bottom_small">
+              <div className="slds-size_1-of-1 slds-form-element slds-col">
+                <div className="slds-form-element__control">
+                  <Select
+                    closeOnSelect={!stayOpen}
+                    disabled={disabled}
+                    multi
+                    onChange={this.handleSelectChange}
+                    options={options}
+                    placeholder="Select Groups to Page"
+                    removeSelected={this.state.removeSelected}
+                    rtl={this.state.rtl}
+                    simpleValue
+                    value={value}
+                  />
+                </div>
               </div>
-            </div>
-            <div className="slds-text-align_center slds-col">
-              <button
-                className="slds-button slds-button_brand"
-                onClick={() => this.pageGroup(value)}>
-                Page
-              </button>
+              <div className="slds-text-align_center slds-col">
+                <button
+                  className="slds-button slds-button_brand"
+                  onClick={() => this.pageGroup(value)}>
+                  Page
+                </button>
+              </div>
             </div>
           </div>
         )}

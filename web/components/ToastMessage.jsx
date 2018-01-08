@@ -32,7 +32,7 @@ class ToastMessage extends React.Component{
   render(){
     const {message, show} = this.state;
     return(
-      <div className={show ? "slds-is-absolute slds-size--1-of-1" : "slds-hide"}>
+      <div className={show ? "slds-is-absolute slds-size--1-of-1" : "slds-hide"} style={{zIndex: '1'}}>
         <div style={{position: 'absolute', left: '0px', top: this.props.index * 50 + "px"}}>
           <div className="slds-notify slds-notify_toast slds-theme_info" role="alert">
             <div className="slds-notify__content">
