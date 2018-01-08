@@ -12,6 +12,9 @@ module.exports = {
     host: 'localhost',
     port: '3000',
     token: process.env.API_TOKEN,
+    socketToken: process.env.SOCKET_TOKEN,
+    pdToken: process.env.PD_TOKEN,
+    pdSender: process.env.PD_SENDER,
   },
   staging: {
     refocusUrl: 'http://refocus-staging.herokuapp.com',
@@ -21,6 +24,9 @@ module.exports = {
     host: 'refocus-staging.herokuapp.com',
     port: '',
     token: process.env.API_TOKEN,
+    socketToken: process.env.SOCKET_TOKEN,
+    pdToken: process.env.PD_TOKEN,
+    pdSender: process.env.PD_SENDER,
   },
   sandbox: {
     refocusUrl: 'https://refocus-sandbox.hk.salesforce.com',
@@ -30,6 +36,9 @@ module.exports = {
     host: 'refocus-sandbox.hk.salesforce.com',
     port: '',
     token: process.env.API_TOKEN,
+    socketToken: process.env.SOCKET_TOKEN,
+    pdToken: process.env.PD_TOKEN,
+    pdSender: process.env.PD_SENDER,
   },
   production: {
     refocusUrl: 'https://refocus.hk.salesforce.com',
@@ -39,5 +48,8 @@ module.exports = {
     host: 'refocus.hk.salesforce.com',
     port: '',
     token: process.env.API_TOKEN,
+    socketToken: process.env.SOCKET_TOKEN,
+    pdToken: process.env.PD_TOKEN,
+    pdSender: process.env.PD_SENDER,
   },
 };

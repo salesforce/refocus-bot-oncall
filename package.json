@@ -2,7 +2,7 @@
   "name": "Oncall-Bot",
   "version": "0.0.1",
   "description": "A bot for PagerDuty integration",
-  "url": "https://git.soma.salesforce.com/Refocus-Bots/PagerDuty-Bot",
+  "url": "https://git.soma.salesforce.com/Refocus-Bots/Oncall-Bot",
   "scripts": {
     "start-ui": "webpack-dev-server --open",
     "start": "npm run build-ui && node index.js",

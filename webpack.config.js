@@ -47,9 +47,7 @@ var config = {
 		new webpack.DefinePlugin({
 			'process.env': {
 				'NODE_ENV': JSON.stringify(process.env.NODE_ENV),
-				'SFDC_USERNAME': JSON.stringify(process.env.SFDC_USERNAME),
-				'SFDC_PASSWORD': JSON.stringify(process.env.SFDC_PASSWORD),
-				'TOKEN': JSON.stringify(process.env.TOKEN),
+				'API_TOKEN': JSON.stringify(process.env.API_TOKEN),
  			}
  		}),
 	]
