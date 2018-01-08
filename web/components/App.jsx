@@ -13,7 +13,7 @@ class App extends React.Component{
   constructor(props){
     super(props);
 
-    this.state={
+    this.state = {
       roomId: props.roomId,
       response: props.response,
       services: props.services,
@@ -37,20 +37,23 @@ class App extends React.Component{
   componentWillReceiveProps(nextProps) {
     this.setState({
       services: nextProps.services,
-      response: nextProps.response
     });
 
     if (nextProps.response) {
-      this.setState({ waiting: false});
+      this.setState({ waiting: false });
+
+      if (this.state.waiting) {
+        this.setState({ response: nextProps.response });
+      }
     }
   }
 
   closeToast(){
-    this.setState({message: ''});
+    this.setState({ response: null });
   }
 
   handleSelectChange (value) {
-    let values = value.split(',');
+    const values = value.split(',');
     if (Array.isArray(values)) {
       this.setState({ value: values });
     } else {
@@ -65,11 +68,11 @@ class App extends React.Component{
   }
 
   toggleRtl (e) {
-    let rtl = e.target.checked;
+    const rtl = e.target.checked;
     this.setState({ rtl });
   }
 
-   pageGroup(services){
+  pageGroup(services) {
     const serviceReq = {
       'name': 'pagerServices',
       'botId': botName,
@@ -88,15 +91,19 @@ class App extends React.Component{
     };
 
     bdk.createBotAction(serviceReq);
-    this.setState({ waiting: true })
+
+    this.setState({
+      value: [],
+      waiting: true
+    });
   }
 
   render(){
     const { services } = this.state;
     const { crazy, disabled, stayOpen, value } = this.state;
-    let options = [];
+    const options = [];
     Object.keys(services).forEach((key) => {
-      let service = {};
+      const service = {};
       service.label = key;
       service.value = services[key];
       options.push(service);
@@ -113,13 +120,12 @@ class App extends React.Component{
         ) : (
 
           <div>
-
-            <ToastMessage
-              message={"Test"}
-              removeToastHandler={this.removeToastHandler}
-            />
-
-
+            { this.state.response &&
+              <ToastMessage
+                message={ this.state.response.statusText }
+                removeToastHandler={this.closeToast}
+              />
+            }
             <div className="slds-grid slds-form slds-form_stacked slds-p-horizontal_medium slds-m-bottom_small">
               <div className="slds-size_1-of-1 slds-form-element slds-col">
                 <div className="slds-form-element__control">
@@ -156,6 +162,7 @@ App.propTypes={
   roomId: PropTypes.number,
   response: PropTypes.object,
   services: PropTypes.object,
+  message: PropTypes.string
 };
 
 module.exports=App;

@@ -31,8 +31,8 @@ let currentMessage = '';
 
 const href = window.location.href;
 
-const defaultVariables = { href: href };
-const defaultTemplate = `You've been paged to join an incident room: {{href}}`;
+const defaultVariables = { href };
+const defaultTemplate = 'You\'ve been paged to join an incident room: {{href}}';
 
 const ZERO = 0;
 const ONE = 1;
@@ -109,7 +109,6 @@ function handleActions(action) {
         renderUI(currentServices, currentMessage, null);
       });
   } else {
-    console.log("hereeeeeeee");
     renderUI(currentServices, currentMessage, action.detail.response);
   }
 }
@@ -130,7 +129,6 @@ function getServices() {
  * The actions to take before load.
  */
 function init() {
-  console.log("ccccc");
   bdk.getBotData(roomId)
     .then((data) => {
       let _services = data.body.filter(bd => bd.name === 'onCallBotServices')[ZERO];
@@ -143,16 +141,16 @@ function init() {
       const unparsedTemp=selTemplate(currentVariables);
       currentMessage = unparsedTemp.toString();
 
-      if(!_template) {
+      if (!_template) {
         bdk.createBotData(roomId, botName, 'onCallBotTemplate', currentTemplate);
       }
 
-      if(!_variables) {
+      if (!_variables) {
         bdk.createBotData(roomId, botName, 'onCallBotData', JSON.stringify(currentVariables));
       }
 
       renderUI(currentServices, currentMessage, null);
-    })
+    });
 
   getServices();
 }
