@@ -199,6 +199,6 @@ app.get('/*', (req, res) => {
   res.sendFile(__dirname + '/web/dist/index.html');
 });
 
-http.Server(app).listen((PORT) => {
+http.Server(app).listen(PORT, function(){
   console.log('listening on: ', PORT);
 });
