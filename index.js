@@ -160,7 +160,7 @@ function handleActions(action){
       console.log(services)
       services.value.forEach((service) => {
         pdTriggerEvent(service, message).then((res) => {
-          console.log(res);
+          console.log(`${service}: Response StatusCode: ${res.statusCode}`);
           completed++;
 
           if (res.statusCode === SUCCESS_CODE) {
