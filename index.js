@@ -25,6 +25,7 @@ const packageJSON = require('./package.json');
 const bdk = require('@salesforce/refocus-bdk')(config);
 const ZERO = 0;
 const ONE = 1;
+const SUCCESS_CODE = 201;
 
 // Installs / Updates the Bot
 bdk.installOrUpdateBot(packageJSON);
@@ -33,7 +34,7 @@ bdk.installOrUpdateBot(packageJSON);
 bdk.refocusConnect(app, socketToken);
 
 let services = [];
-let serviceMap = {};
+const serviceMap = {};
 
 function pdServices(offset){
   return new Promise((resolve, reject) => {
@@ -48,17 +49,18 @@ function pdServices(offset){
 }
 
 function getServices(offset) {
-  return pdServices(offset).then(function(result) {
+  return pdServices(offset).then((result) => {
     if (result.body.more) {
       services = services.concat(result.body.services);
       return getServices(offset+100);
-    } else {
-      services = services.concat(result.body.services);
-      services.forEach((service) => {
-        serviceMap[service.name] = service.id;
-      })
-      return serviceMap;
     }
+
+    services = services.concat(result.body.services);
+    services.forEach((service) => {
+      serviceMap[service.name] = service.id;
+    });
+
+    return serviceMap;
   });
 }
 
@@ -144,11 +146,11 @@ function handleActions(action){
   }
 
   if (action.name === 'pagerServices'){
-    let successfullyPaged = [];
-    let unsuccessfullyPaged = [];
+    const successfullyPaged = [];
+    const unsuccessfullyPaged = [];
     let responseText = '';
 
-    if (!action.response && action.isPending){
+    if (!action.response && action.isPending) {
       const id = action.id;
       const params = action.parameters;
       const services = params.filter(param => param.name == 'services')[ZERO];
@@ -157,7 +159,7 @@ function handleActions(action){
       console.log(services)
       services.value.forEach((service, index) => {
         pdTriggerEvent(service, message).then((res) => {
-          if (res.statusCode === 201) {
+          if (res.statusCode === SUCCESS_CODE) {
             successfullyPaged.push(res.body.incident.service.summary);
           } else {
             unsuccessfullyPaged.push(res.body.incident.service.summary);
@@ -193,10 +195,10 @@ app.on('refocus.bot.data', handleData);
 app.on('refocus.room.settings', handleSettings);
 
 app.use(express.static('web/dist'));
-app.get('/*', function(req, res){
+app.get('/*', (req, res) => {
   res.sendFile(__dirname + '/web/dist/index.html');
 });
 
-http.Server(app).listen(PORT, function(){
+http.Server(app).listen((PORT) => {
   console.log('listening on: ', PORT);
 });
