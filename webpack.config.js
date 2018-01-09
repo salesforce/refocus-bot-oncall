@@ -17,10 +17,25 @@ const config = {
 
   module: {
     rules: [
-      {test: /\.(js|jsx)$/, use: 'babel-loader?compact=true'}, //code transformer (if file is .js)
-      {test: /\.css$/, use: ['style-loader', 'css-loader']},
-      {test: /\.handlebars$/, loader: "handlebars-loader"},
-      {test: /.(png|jpg|jpeg|gif|svg|woff|woff2|ttf|eot)$/, use: "url-loader?limit=100000"},
+      {
+        test: /\.(js|jsx)$/,
+        include: [path.resolve(__dirname, 'lib'), path.resolve(__dirname, 'web')],
+        use: 'babel-loader?compact=true',
+      },
+      {
+        test: /\.css$/,
+        use: ['style-loader', 'css-loader']
+      },
+      {
+        test: /\.handlebars$/,
+        loader: "handlebars-loader",
+        include: path.resolve(__dirname, 'web'),
+      },
+      {
+        test: /.(png|jpg|jpeg|gif|svg|woff|woff2|ttf|eot)$/,
+        use: "url-loader?limit=100000",
+        include: path.resolve(__dirname, 'web'),
+      },
     ]
   },
 
