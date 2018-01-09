@@ -156,10 +156,12 @@ function handleActions(action){
       const services = params.filter(param => param.name == 'services')[ZERO];
       const message = params.filter(param => param.name == 'message')[ZERO].value;
       const response = {};
+      let completed = ZERO;
       console.log(services)
-      services.value.forEach((service, index) => {
+      services.value.forEach((service) => {
         pdTriggerEvent(service, message).then((res) => {
           console.log(res);
+          completed++;
 
           if (res.statusCode === SUCCESS_CODE) {
             successfullyPaged.push(res.body.incident.service.summary);
@@ -167,7 +169,7 @@ function handleActions(action){
             unsuccessfullyPaged.push(res.body.incident.service.summary);
           }
 
-          if (index === services.value.length - ONE) {
+          if (completed === services.value.length) {
             successfullyPaged.forEach((serviceName, i) => {
               if (i === ZERO) {
                 responseText += `Successfully Paged: ${serviceName}`;
