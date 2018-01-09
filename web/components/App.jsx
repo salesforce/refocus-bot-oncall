@@ -18,10 +18,6 @@ class App extends React.Component{
       roomId: props.roomId,
       response: props.response,
       services: props.services,
-      removeSelected: true,
-      disabled: false,
-      crazy: false,
-      stayOpen: true,
       value: [],
       rtl: false,
       message: props.message,
@@ -36,16 +32,12 @@ class App extends React.Component{
   }
 
   componentWillReceiveProps(nextProps) {
-
-    console.log(nextProps);
-
     this.setState({
       services: nextProps.services,
     });
 
     if (nextProps.response) {
       this.setState({ waiting: false });
-
       if (this.state.waiting) {
         this.setState({ response: nextProps.response });
       }
@@ -106,7 +98,7 @@ class App extends React.Component{
 
   render(){
     const { services } = this.state;
-    const { crazy, disabled, stayOpen, value } = this.state;
+    const { value } = this.state;
     const options = [];
     Object.keys(services).forEach((key) => {
       const service = {};
@@ -124,7 +116,6 @@ class App extends React.Component{
             <div className="slds-spinner__dot-b"></div>
           </div>
         ) : (
-
           <div>
             { this.state.response &&
               <ToastMessage
@@ -136,13 +127,10 @@ class App extends React.Component{
               <div className="slds-size_1-of-1 slds-form-element slds-col">
                 <div className="slds-form-element__control">
                   <Select
-                    closeOnSelect={!stayOpen}
-                    disabled={disabled}
                     multi
                     onChange={this.handleSelectChange}
                     options={options}
                     placeholder="Select Groups to Page"
-                    removeSelected={this.state.removeSelected}
                     rtl={this.state.rtl}
                     simpleValue
                     value={value}
