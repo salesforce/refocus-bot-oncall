@@ -12,9 +12,9 @@ class ToastMessage extends React.Component{
   }
 
   closeToast(){
-    this.setState({ show: false });
-    if (this.props.closed) {
-      this.props.closed();
+    if (this.props.removeToastHandler) {
+      this.setState({ show: false });
+      this.props.removeToastHandler();
     }
   }
 
@@ -51,7 +51,7 @@ class ToastMessage extends React.Component{
 
 ToastMessage.propTypes={
   message: PropTypes.string,
-  closed: PropTypes.func,
+  removeToastHandler: PropTypes.func,
 };
 
 module.exports=ToastMessage;

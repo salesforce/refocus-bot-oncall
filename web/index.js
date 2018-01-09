@@ -109,6 +109,7 @@ function handleActions(action) {
         renderUI(currentServices, currentMessage, null);
       });
   } else {
+    console.log(action);
     renderUI(currentServices, currentMessage, action.detail.response);
   }
 }
