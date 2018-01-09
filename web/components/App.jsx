@@ -36,6 +36,9 @@ class App extends React.Component{
   }
 
   componentWillReceiveProps(nextProps) {
+
+    console.log(nextProps);
+
     this.setState({
       services: nextProps.services,
     });
