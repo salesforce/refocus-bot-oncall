@@ -8,6 +8,7 @@ const botName = require('../../package.json').name;
 const env = process.env.NODE_ENV || 'dev';
 const config = require('../../config.js')[env];
 const bdk = require('@salesforce/refocus-bdk')(config);
+const ZERO = 0;
 
 class App extends React.Component{
   constructor(props){
@@ -73,29 +74,31 @@ class App extends React.Component{
   }
 
   pageGroup(services) {
-    const serviceReq = {
-      'name': 'pagerServices',
-      'botId': botName,
-      'roomId': this.state.roomId,
-      'isPending': true,
-      'parameters': [
-        {
-          'name': 'services',
-          'value': services,
-        },
-        {
-          'name': 'message',
-          'value': this.state.message,
-        },
-      ]
-    };
+    if (services.length > ZERO) {
+      const serviceReq = {
+        'name': 'pagerServices',
+        'botId': botName,
+        'roomId': this.state.roomId,
+        'isPending': true,
+        'parameters': [
+          {
+            'name': 'services',
+            'value': services,
+          },
+          {
+            'name': 'message',
+            'value': this.state.message,
+          },
+        ]
+      };
 
-    bdk.createBotAction(serviceReq);
+      this.setState({
+        value: [],
+        waiting: true
+      });
 
-    this.setState({
-      value: [],
-      waiting: true
-    });
+      bdk.createBotAction(serviceReq);
+    }
   }
 
   render(){
