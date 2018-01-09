@@ -159,6 +159,8 @@ function handleActions(action){
       console.log(services)
       services.value.forEach((service, index) => {
         pdTriggerEvent(service, message).then((res) => {
+          console.log(res);
+
           if (res.statusCode === SUCCESS_CODE) {
             successfullyPaged.push(res.body.incident.service.summary);
           } else {
@@ -166,19 +168,21 @@ function handleActions(action){
           }
 
           if (index === services.value.length - ONE) {
-            if (successfullyPaged.length > ZERO) {
-              responseText += 'Paged: ';
-              successfullyPaged.forEach((serviceName) => {
-                responseText += `${serviceName} `;
-              });
-            }
+            successfullyPaged.forEach((serviceName, i) => {
+              if (i === ZERO) {
+                responseText += `Successfully Paged: ${serviceName}`;
+              } else {
+                responseText += `, ${serviceName}`;
+              }
+            });
 
-            if (unsuccessfullyPaged.length > ZERO) {
-              responseText += 'Error: ';
-              unsuccessfullyPaged.forEach((serviceName) => {
-                responseText += `${serviceName} `;
-              });
-            }
+            unsuccessfullyPaged.forEach((serviceName, i) => {
+              if (i === ZERO) {
+                responseText += ` Failed to Page: ${serviceName}`;
+              } else {
+                responseText += `, ${serviceName}`;
+              }
+            });
 
             response.statusText = responseText;
             bdk.respondBotAction(id, response);
