@@ -8,22 +8,20 @@ const botName = require('../../package.json').name;
 const env = process.env.NODE_ENV || 'dev';
 const config = require('../../config.js')[env];
 const bdk = require('@salesforce/refocus-bdk')(config);
+const ZERO = 0;
 
 class App extends React.Component{
   constructor(props){
     super(props);
 
-    this.state={
+    this.state = {
       roomId: props.roomId,
       response: props.response,
       services: props.services,
-      removeSelected: true,
-      disabled: false,
-      crazy: false,
-      stayOpen: true,
       value: [],
       rtl: false,
-      message: props.message
+      message: props.message,
+      waiting: false
     };
 
     this.closeToast = this.closeToast.bind(this);
@@ -35,18 +33,23 @@ class App extends React.Component{
 
   componentWillReceiveProps(nextProps) {
     this.setState({
-      response: nextProps.response,
-      services: nextProps.services
+      services: nextProps.services,
     });
 
+    if (nextProps.response) {
+      this.setState({ waiting: false });
+      if (this.state.waiting) {
+        this.setState({ response: nextProps.response });
+      }
+    }
   }
 
   closeToast(){
-    this.setState({message: ''});
+    this.setState({ response: null });
   }
 
   handleSelectChange (value) {
-    let values = value.split(',');
+    const values = value.split(',');
     if (Array.isArray(values)) {
       this.setState({ value: values });
     } else {
@@ -61,37 +64,44 @@ class App extends React.Component{
   }
 
   toggleRtl (e) {
-    let rtl = e.target.checked;
+    const rtl = e.target.checked;
     this.setState({ rtl });
   }
 
-   pageGroup(services){
-    const serviceReq = {
-      'name': 'pagerServices',
-      'botId': botName,
-      'roomId': this.state.roomId,
-      'isPending': true,
-      'parameters': [
-        {
-          'name': 'services',
-          'value': services,
-        },
-        {
-          'name': 'message',
-          'value': this.state.message,
-        },
-      ]
-    };
+  pageGroup(services) {
+    if (services.length > ZERO) {
+      const serviceReq = {
+        'name': 'pagerServices',
+        'botId': botName,
+        'roomId': this.state.roomId,
+        'isPending': true,
+        'parameters': [
+          {
+            'name': 'services',
+            'value': services,
+          },
+          {
+            'name': 'message',
+            'value': this.state.message,
+          },
+        ]
+      };
 
-    bdk.createBotAction(serviceReq);
+      this.setState({
+        value: [],
+        waiting: true
+      });
+
+      bdk.createBotAction(serviceReq);
+    }
   }
 
   render(){
     const { services } = this.state;
-    const { crazy, disabled, stayOpen, value } = this.state;
-    let options = [];
+    const { value } = this.state;
+    const options = [];
     Object.keys(services).forEach((key) => {
-      let service = {};
+      const service = {};
       service.label = key;
       service.value = services[key];
       options.push(service);
@@ -99,36 +109,41 @@ class App extends React.Component{
 
     return (
       <div>
-        { (_.isEqual(services, {})) ? (
+        { (_.isEqual(services, {}) || this.state.waiting) ? (
           <div role="status" style={{ position: 'relative', top: '50px' }} className="slds-spinner slds-spinner--large slds-spinner--brand">
             <span className="slds-assistive-text">Loading</span>
             <div className="slds-spinner__dot-a"></div>
             <div className="slds-spinner__dot-b"></div>
           </div>
         ) : (
-          <div className="slds-grid slds-form slds-form_stacked slds-p-horizontal_medium slds-m-bottom_small">
-            <div className="slds-size_1-of-1 slds-form-element slds-col">
-              <div className="slds-form-element__control">
-                <Select
-                  closeOnSelect={!stayOpen}
-                  disabled={disabled}
-                  multi
-                  onChange={this.handleSelectChange}
-                  options={options}
-                  placeholder="Select Groups to Page"
-                  removeSelected={this.state.removeSelected}
-                  rtl={this.state.rtl}
-                  simpleValue
-                  value={value}
-                />
+          <div>
+            { this.state.response &&
+              <ToastMessage
+                message={ this.state.response.statusText }
+                removeToastHandler={this.closeToast}
+              />
+            }
+            <div className="slds-grid slds-form slds-form_stacked slds-p-horizontal_medium slds-m-bottom_small">
+              <div className="slds-size_1-of-1 slds-form-element slds-col">
+                <div className="slds-form-element__control">
+                  <Select
+                    multi
+                    onChange={this.handleSelectChange}
+                    options={options}
+                    placeholder="Select Groups to Page"
+                    rtl={this.state.rtl}
+                    simpleValue
+                    value={value}
+                  />
+                </div>
               </div>
-            </div>
-            <div className="slds-text-align_center slds-col">
-              <button
-                className="slds-button slds-button_brand"
-                onClick={() => this.pageGroup(value)}>
-                Page
-              </button>
+              <div className="slds-text-align_center slds-col">
+                <button
+                  className="slds-button slds-button_brand"
+                  onClick={() => this.pageGroup(value)}>
+                  Page
+                </button>
+              </div>
             </div>
           </div>
         )}
@@ -141,6 +156,7 @@ App.propTypes={
   roomId: PropTypes.number,
   response: PropTypes.object,
   services: PropTypes.object,
+  message: PropTypes.string
 };
 
 module.exports=App;
