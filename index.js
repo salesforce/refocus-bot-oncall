@@ -23,6 +23,9 @@ const config = require('./config.js')[env];
 const { socketToken, pdToken, pdSender } = config;
 const packageJSON = require('./package.json');
 const bdk = require('@salesforce/refocus-bdk')(config);
+const ZERO = 0;
+const ONE = 1;
+const SUCCESS_CODE = 201;
 
 // Installs / Updates the Bot
 bdk.installOrUpdateBot(packageJSON);
@@ -31,7 +34,7 @@ bdk.installOrUpdateBot(packageJSON);
 bdk.refocusConnect(app, socketToken);
 
 let services = [];
-let serviceMap = {};
+const serviceMap = {};
 
 function pdServices(offset){
   return new Promise((resolve, reject) => {
@@ -46,17 +49,18 @@ function pdServices(offset){
 }
 
 function getServices(offset) {
-  return pdServices(offset).then(function(result) {
+  return pdServices(offset).then((result) => {
     if (result.body.more) {
       services = services.concat(result.body.services);
       return getServices(offset+100);
-    } else {
-      services = services.concat(result.body.services);
-      services.forEach((service) => {
-        serviceMap[service.name] = service.id;
-      })
-      return serviceMap;
     }
+
+    services = services.concat(result.body.services);
+    services.forEach((service) => {
+      serviceMap[service.name] = service.id;
+    });
+
+    return serviceMap;
   });
 }
 
@@ -135,22 +139,58 @@ function handleActions(action){
   if (action.name === 'getServices'){
     if (!action.response && action.isPending){
       const id = action.id;
-      getServices(0).then(function(result) {
+      getServices(ZERO).then(function(result) {
         bdk.respondBotAction(id, result);
       });
     }
   }
 
   if (action.name === 'pagerServices'){
-    if (!action.response && action.isPending){
+    const successfullyPaged = [];
+    const unsuccessfullyPaged = [];
+    let responseText = '';
+
+    if (!action.response && action.isPending) {
       const id = action.id;
       const params = action.parameters;
-      const services = params.filter(param => param.name == 'services')[0];
-      const message = params.filter(param => param.name == 'message')[0].value;
+      const services = params.filter(param => param.name == 'services')[ZERO];
+      const message = params.filter(param => param.name == 'message')[ZERO].value;
+      const response = {};
+      let completed = ZERO;
       console.log(services)
       services.value.forEach((service) => {
-        pdTriggerEvent(service, message).then((res) => console.log(res));
-      })
+        pdTriggerEvent(service, message).then((res) => {
+          console.log(`${service}: Response StatusCode: ${res.statusCode}`);
+          completed++;
+
+          if (res.statusCode === SUCCESS_CODE) {
+            successfullyPaged.push(res.body.incident.service.summary);
+          } else {
+            unsuccessfullyPaged.push(res.body.incident.service.summary);
+          }
+
+          if (completed === services.value.length) {
+            successfullyPaged.forEach((serviceName, i) => {
+              if (i === ZERO) {
+                responseText += `Successfully Paged: ${serviceName}`;
+              } else {
+                responseText += `, ${serviceName}`;
+              }
+            });
+
+            unsuccessfullyPaged.forEach((serviceName, i) => {
+              if (i === ZERO) {
+                responseText += ` Failed to Page: ${serviceName}`;
+              } else {
+                responseText += `, ${serviceName}`;
+              }
+            });
+
+            response.statusText = responseText;
+            bdk.respondBotAction(id, response);
+          }
+        });
+      });
     }
   }
 }
@@ -161,7 +201,7 @@ app.on('refocus.bot.data', handleData);
 app.on('refocus.room.settings', handleSettings);
 
 app.use(express.static('web/dist'));
-app.get('/*', function(req, res){
+app.get('/*', (req, res) => {
   res.sendFile(__dirname + '/web/dist/index.html');
 });
 
