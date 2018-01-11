@@ -109,7 +109,6 @@ function handleActions(action) {
         renderUI(currentServices, currentMessage, null);
       });
   } else {
-    console.log(action);
     renderUI(currentServices, currentMessage, action.detail.response);
   }
 }
@@ -132,24 +131,51 @@ function getServices() {
 function init() {
   bdk.getBotData(roomId)
     .then((data) => {
-      let _services = data.body.filter(bd => bd.name === 'onCallBotServices')[ZERO];
-      let _template = data.body.filter(bd => bd.name === 'onCallBotTemplate')[ZERO];
-      let _variables = data.body.filter(bd => bd.name === 'onCallBotData')[ZERO];
+      const _services = data.body.filter(bd => bd.name === 'onCallBotServices')[ZERO];
+      const _template = data.body.filter(bd => bd.name === 'onCallBotTemplate')[ZERO];
+      const _variables = data.body.filter(bd => bd.name === 'onCallBotData')[ZERO];
       currentServices = _services ? JSON.parse(_services.value) : {};
       currentVariables = _variables ? JSON.parse(_variables.value) : defaultVariables;
       currentTemplate = _template ? _template.value : defaultTemplate;
+
+      if (!_services || !_template || !_variables) {
+        bdk.findRoom(roomId)
+          .then((res) => {
+            if (!_services) {
+              if (res.body.settings) {
+                if (res.body.settings.onCallBotServices) {
+                  currentServices = res.body.settings.onCallBotServices;
+                }
+              }
+
+              bdk.createBotData(roomId, botName, 'onCallBotServices', JSON.stringify(currentServices));
+            }
+
+            if (!_template) {
+              if (res.body.settings) {
+                if (res.body.settings.onCallBotTemplate) {
+                  currentTemplate = res.body.settings.onCallBotTemplate;
+                }
+              }
+
+              bdk.createBotData(roomId, botName, 'onCallBotTemplate', JSON.stringify(currentTemplate));
+            }
+
+            if (!_variables) {
+              if (res.body.settings) {
+                if (res.body.settings.onCallBotData) {
+                  currentVariables = res.body.settings.onCallBotData;
+                }
+              }
+
+              bdk.createBotData(roomId, botName, 'onCallBotData', JSON.stringify(currentVariables));
+            }
+          });
+      }
+
       const selTemplate=handlebars.compile(currentTemplate);
       const unparsedTemp=selTemplate(currentVariables);
       currentMessage = unparsedTemp.toString();
-
-      if (!_template) {
-        bdk.createBotData(roomId, botName, 'onCallBotTemplate', currentTemplate);
-      }
-
-      if (!_variables) {
-        bdk.createBotData(roomId, botName, 'onCallBotData', JSON.stringify(currentVariables));
-      }
-
       renderUI(currentServices, currentMessage, null);
     });
 
