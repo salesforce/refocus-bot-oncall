@@ -64,7 +64,7 @@ function getServices(offset) {
   });
 }
 
-function pdTriggerEvent(group, message){
+function pdTriggerEvent(group, message, room){
   const obj =
   {
     'incident':
@@ -79,7 +79,8 @@ function pdTriggerEvent(group, message){
       'body':
       {
         'type': 'incident_body',
-        'details': message
+        'details': message,
+        'roomId': room
       }
     }
   };
@@ -153,14 +154,19 @@ function handleActions(action){
     if (!action.response && action.isPending) {
       const id = action.id;
       const params = action.parameters;
-      const services = params.filter(param => param.name == 'services')[ZERO];
-      const message = params.filter(param => param.name == 'message')[ZERO].value;
+      const selectedServices = params.filter((param) =>
+        param.name === 'services')[ZERO];
+      const message = params.filter((param) =>
+        param.name === 'message')[ZERO].value;
       const response = {};
       let completed = ZERO;
-      console.log(services)
-      services.value.forEach((service) => {
-        pdTriggerEvent(service, message).then((res) => {
-          console.log(`${service}: Response StatusCode: ${res.statusCode}`);
+      const pdIncidents = [];
+      selectedServices.value.forEach((service) => {
+        pdIncidents.push(pdTriggerEvent(service, message, action.roomId));
+      });
+      Promise.all(pdIncidents)
+        .then((incident) => {
+          const res = incident.res;
           completed++;
 
           if (res.statusCode === SUCCESS_CODE) {
@@ -169,7 +175,7 @@ function handleActions(action){
             unsuccessfullyPaged.push(res.body.incident.service.summary);
           }
 
-          if (completed === services.value.length) {
+          if (completed === selectedServices.value.length) {
             successfullyPaged.forEach((serviceName, i) => {
               if (i === ZERO) {
                 responseText += `Successfully Paged: ${serviceName}`;
@@ -190,7 +196,6 @@ function handleActions(action){
             bdk.respondBotAction(id, response);
           }
         });
-      });
     }
   }
 }
