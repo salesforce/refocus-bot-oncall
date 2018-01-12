@@ -125,7 +125,7 @@ class App extends React.Component{
             }
             <div className="slds-grid slds-form slds-form_stacked slds-p-horizontal_medium slds-m-bottom_small">
               <div className="slds-size_1-of-1 slds-form-element slds-col">
-                <div className="slds-form-element__control">
+                <div className="slds-form-element__control slds-p-around_x-small">
                   <Select
                     multi
                     onChange={this.handleSelectChange}
@@ -137,7 +137,7 @@ class App extends React.Component{
                   />
                 </div>
               </div>
-              <div className="slds-text-align_center slds-col">
+              <div className="slds-text-align_center slds-col slds-p-top_x-small">
                 <button
                   className="slds-button slds-button_brand"
                   onClick={() => this.pageGroup(value)}>
