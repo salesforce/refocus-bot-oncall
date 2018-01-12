@@ -28,6 +28,7 @@ let currentServices = {};
 let currentVariables = {};
 let currentTemplate = '';
 let currentMessage = '';
+let _incidentLogs = {};
 
 const href = window.location.href;
 
@@ -41,16 +42,10 @@ const ROOMID = window.location.pathname.split('rooms/').length > ONE ? parseInt(
   'rooms/')[ONE]) : ONE; // This is a temperary fix
 const roomId = parseInt(ROOMID); // ROOMID will be provided from the page DOM
 
-document.getElementById(botName).addEventListener('refocus.events', handleEvents, false);
-document.getElementById(botName).addEventListener('refocus.room.settings', handleSettings, false);
-document.getElementById(botName).addEventListener('refocus.bot.data', handleData, false);
-document.getElementById(botName).addEventListener('refocus.bot.actions', handleActions, false);
-
 /**
  * When a refocus.events is dispatch it is handled here.
  *
  * @param {Event} event - The most recent event object
- * @return null
  */
 function handleEvents(event) {
   console.log(botName + ' Event Activity', event);
@@ -60,7 +55,6 @@ function handleEvents(event) {
  * When a refocus.room.settings is dispatch it is handled here.
  *
  * @param {Room} room - Room object that was dispatched
- * @return null
  */
 function handleSettings(room) {
   console.log(botName + ' Room Activity', room);
@@ -70,7 +64,6 @@ function handleSettings(room) {
  * When a refocus.bot.data is dispatch it is handled here.
  *
  * @param {BotData} data - Bot Data object that was dispatched
- * @return null
  */
 function handleData(data) {
   console.log(botName + ' Bot Data Activity', data);
@@ -86,7 +79,6 @@ function handleData(data) {
  * When a refocus.bot.actions is dispatch it is handled here.
  *
  * @param {BotAction} action - Bot Action object that was dispatched
- * @return null
  */
 function handleActions(action) {
   console.log(botName + ' Bot Action Activity', action);
@@ -94,7 +86,8 @@ function handleActions(action) {
   if (action.detail.name === 'getServices') {
     bdk.getBotData(roomId)
       .then((data) => {
-        const _services = data.body.filter(bd => bd.name === 'onCallBotServices')[ZERO];
+        const _services = data.body
+          .filter((bd) => bd.name === 'onCallBotServices')[ZERO];
 
         if (!_.isEqual(currentServices, action.detail.response)) {
           currentServices = action.detail.response;
@@ -102,17 +95,48 @@ function handleActions(action) {
           if (_services) {
             bdk.changeBotData(_services.id, JSON.stringify(currentServices));
           } else {
-            bdk.createBotData(roomId, botName, 'onCallBotServices', JSON.stringify(currentServices));
+            bdk.createBotData(
+              roomId,
+              botName,
+              'onCallBotServices',
+              JSON.stringify(currentServices)
+            );
           }
         }
 
         renderUI(currentServices, currentMessage, null);
       });
   } else {
+    const newIncidents = _incidentLogs ?
+      JSON.parse(_incidentLogs.value) :
+      { incidents: [] };
+    newIncidents.incidents =
+      newIncidents.incidents.concat(action.detail.response.incidents);
+    if (_incidentLogs) {
+      bdk.changeBotData(_incidentLogs.id, JSON.stringify(newIncidents))
+        .then((o) => {
+          _incidentLogs = o.body;
+        });
+    } else {
+      bdk.createBotData(
+        roomId,
+        botName,
+        'onCallIncidents',
+        JSON.stringify(action.detail.response)
+      ).then((o) => {
+        _incidentLogs = o.body;
+      });
+    }
+
     renderUI(currentServices, currentMessage, action.detail.response);
   }
 }
 
+/**
+ * Create botAction to get all the services
+ *
+ * @returns {Promise} - Bot Action Promise
+ */
 function getServices() {
   const serviceReq = {
     'name': 'getServices',
@@ -125,17 +149,24 @@ function getServices() {
   return bdk.createBotAction(serviceReq);
 }
 
-/*
+/**
  * The actions to take before load.
  */
 function init() {
   bdk.getBotData(roomId)
     .then((data) => {
-      const _services = data.body.filter(bd => bd.name === 'onCallBotServices')[ZERO];
-      const _template = data.body.filter(bd => bd.name === 'onCallBotTemplate')[ZERO];
-      const _variables = data.body.filter(bd => bd.name === 'onCallBotData')[ZERO];
+      const _services = data.body
+        .filter((bd) => bd.name === 'onCallBotServices')[ZERO];
+      const _template = data.body
+        .filter((bd) => bd.name === 'onCallBotTemplate')[ZERO];
+      const _variables = data.body
+        .filter((bd) => bd.name === 'onCallBotData')[ZERO];
+      _incidentLogs = data.body
+        .filter((bd) => bd.name === 'onCallIncidents')[ZERO];
       currentServices = _services ? JSON.parse(_services.value) : {};
-      currentVariables = _variables ? JSON.parse(_variables.value) : defaultVariables;
+      currentVariables = _variables ?
+        JSON.parse(_variables.value) :
+        defaultVariables;
       currentTemplate = _template ? _template.value : defaultTemplate;
 
       if (!_services || !_template || !_variables) {
@@ -148,7 +179,12 @@ function init() {
                 }
               }
 
-              bdk.createBotData(roomId, botName, 'onCallBotServices', JSON.stringify(currentServices));
+              bdk.createBotData(
+                roomId,
+                botName,
+                'onCallBotServices',
+                JSON.stringify(currentServices)
+              );
             }
 
             if (!_template) {
@@ -158,7 +194,12 @@ function init() {
                 }
               }
 
-              bdk.createBotData(roomId, botName, 'onCallBotTemplate', JSON.stringify(currentTemplate));
+              bdk.createBotData(
+                roomId,
+                botName,
+                'onCallBotTemplate',
+                JSON.stringify(currentTemplate)
+              );
             }
 
             if (!_variables) {
@@ -168,7 +209,12 @@ function init() {
                 }
               }
 
-              bdk.createBotData(roomId, botName, 'onCallBotData', JSON.stringify(currentVariables));
+              bdk.createBotData(
+                roomId,
+                botName,
+                'onCallBotData',
+                JSON.stringify(currentVariables)
+              );
             }
           });
       }
@@ -198,4 +244,12 @@ function renderUI(services, message, response){
   );
 }
 
+document.getElementById(botName)
+  .addEventListener('refocus.events', handleEvents, false);
+document.getElementById(botName)
+  .addEventListener('refocus.room.settings', handleSettings, false);
+document.getElementById(botName)
+  .addEventListener('refocus.bot.data', handleData, false);
+document.getElementById(botName)
+  .addEventListener('refocus.bot.actions', handleActions, false);
 init();
