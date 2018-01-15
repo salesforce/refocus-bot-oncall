@@ -15,6 +15,8 @@
   "dependencies": {
     "@salesforce/refocus-bdk": "^1.0.1",
     "chai": "^4.0.2",
+    "dotenv": "4.0.0",
+    "dotenv-webpack": "1.5.4",
     "email-validator": "^1.0.7",
     "express": "4.10.2",
     "handlebars": "^4.0.10",
@@ -26,12 +28,12 @@
     "react": "^15.6.1",
     "react-dom": "^15.6.1",
     "react-html-parser": "^1.0.3",
+    "react-select": "^1.0.1",
     "sendgrid": "^5.1.2",
     "sinon": "^2.3.7",
     "socket.io": "1.2.0",
     "socket.io-client": "^2.0.3",
-    "superagent": "^3.6.0",
-    "react-select": "^1.0.1"
+    "superagent": "^3.6.0"
   },
   "babel": {
     "presets": [
