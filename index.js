@@ -141,7 +141,7 @@ function handleActions(action){
     if (!action.response && action.isPending){
       const id = action.id;
       getServices(ZERO).then(function(result) {
-        bdk.respondBotAction(id, result);
+        bdk.respondBotActionNoLog(id, result);
       });
     }
   }
@@ -202,7 +202,13 @@ function handleActions(action){
 
           response.statusText = responseText;
           response.incidents = incidentList;
-          bdk.respondBotAction(id, response);
+          const eventLog = {
+            'log': packageJSON.name + ' has ' + responseText,
+            'context': {
+              'type': 'Event',
+            },
+          };
+          bdk.respondBotAction(id, response, eventLog);
         });
     }
   }

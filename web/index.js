@@ -36,11 +36,8 @@ const defaultVariables = { href };
 const defaultTemplate = 'You\'ve been paged to join an incident room: {{href}}';
 
 const ZERO = 0;
-const ONE = 1;
 
-const ROOMID = window.location.pathname.split('rooms/').length > ONE ? parseInt(window.location.pathname.split(
-  'rooms/')[ONE]) : ONE; // This is a temperary fix
-const roomId = parseInt(ROOMID); // ROOMID will be provided from the page DOM
+const roomId = bdk.getRoomId();
 
 /**
  * When a refocus.events is dispatch it is handled here.
@@ -72,7 +69,15 @@ function handleData(data) {
     currentServices = JSON.parse(data.detail.value);
   }
 
-  renderUI(currentServices, currentMessage, null);
+  if (data.detail.name === 'onCallIncidents'){
+    _incidentLogs = JSON.parse(data.detail.value);
+  }
+
+  const incidents = _incidentLogs ?
+    JSON.parse(_incidentLogs.value).incidents :
+    [];
+
+  renderUI(currentServices, currentMessage, null, incidents);
 }
 
 /**
@@ -103,8 +108,10 @@ function handleActions(action) {
             );
           }
         }
-
-        renderUI(currentServices, currentMessage, null);
+        const incidents = _incidentLogs ?
+          JSON.parse(_incidentLogs.value).incidents :
+          [];
+        renderUI(currentServices, currentMessage, null, incidents);
       });
   } else {
     const newIncidents = _incidentLogs ?
@@ -128,7 +135,12 @@ function handleActions(action) {
       });
     }
 
-    renderUI(currentServices, currentMessage, action.detail.response);
+    renderUI(
+      currentServices,
+      currentMessage,
+      action.detail.response,
+      newIncidents.incidents
+    );
   }
 }
 
@@ -219,26 +231,33 @@ function init() {
           });
       }
 
+      const incidents = _incidentLogs ?
+        JSON.parse(_incidentLogs.value).incidents :
+        [];
       const selTemplate=handlebars.compile(currentTemplate);
       const unparsedTemp=selTemplate(currentVariables);
       currentMessage = unparsedTemp.toString();
-      renderUI(currentServices, currentMessage, null);
+      renderUI(currentServices, currentMessage, null, incidents);
     });
 
   getServices();
 }
 
 /**
- * @global {Integer} roomId - Room Id that is provided from refocus
- * @return null
+ * global {Integer} roomId - Room Id that is provided from refocus
+ * @param {Object} services - Services Selected
+ * @param {String} message - Message Response
+ * @param {Object} response - Action Response
+ * @param {Array} incidentList - List of incidents
  */
-function renderUI(services, message, response){
+function renderUI(services, message, response, incidentList){
   ReactDOM.render(
     <App
       roomId={ roomId }
       services={ services }
       message = { message }
       response={ response }
+      incidents={ incidentList }
     />,
     document.getElementById(botName)
   );

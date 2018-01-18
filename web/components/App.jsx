@@ -21,7 +21,8 @@ class App extends React.Component{
       value: [],
       rtl: false,
       message: props.message,
-      waiting: false
+      waiting: false,
+      incidents: props.incidents ? props.incidents : [],
     };
 
     this.closeToast = this.closeToast.bind(this);
@@ -34,6 +35,11 @@ class App extends React.Component{
   componentWillReceiveProps(nextProps) {
     this.setState({
       services: nextProps.services,
+    });
+    this.setState({
+      incidents: nextProps.incidents ?
+        nextProps.incidents :
+        this.state.incidents,
     });
 
     if (nextProps.response) {
@@ -97,8 +103,7 @@ class App extends React.Component{
   }
 
   render(){
-    const { services } = this.state;
-    const { value } = this.state;
+    const { services, value, incidents } = this.state;
     const options = [];
     Object.keys(services).forEach((key) => {
       const service = {};
@@ -107,10 +112,18 @@ class App extends React.Component{
       options.push(service);
     });
 
+    const gridCSS = 'slds-grid slds-form slds-form_stacked ' +
+    'slds-p-horizontal_medium slds-m-bottom_x-small';
+    const titleCSS = 'slds-text-title_caps slds-border_bottom ' +
+      'slds-m-around_x-small slds-p-bottom_x-small';
+
     return (
       <div>
         { (_.isEqual(services, {}) || this.state.waiting) ? (
-          <div role="status" style={{ position: 'relative', top: '50px' }} className="slds-spinner slds-spinner--large slds-spinner--brand">
+          <div
+            role="status"
+            style={{ position: 'relative', top: '50px' }}
+            className="slds-spinner slds-spinner--large slds-spinner--brand">
             <span className="slds-assistive-text">Loading</span>
             <div className="slds-spinner__dot-a"></div>
             <div className="slds-spinner__dot-b"></div>
@@ -123,9 +136,10 @@ class App extends React.Component{
                 removeToastHandler={this.closeToast}
               />
             }
-            <div className="slds-grid slds-form slds-form_stacked slds-p-horizontal_medium slds-m-bottom_small">
+            <div className={gridCSS}>
               <div className="slds-size_1-of-1 slds-form-element slds-col">
-                <div className="slds-form-element__control slds-p-around_x-small">
+                <div
+                  className="slds-form-element__control slds-p-around_x-small">
                   <Select
                     multi
                     onChange={this.handleSelectChange}
@@ -137,7 +151,8 @@ class App extends React.Component{
                   />
                 </div>
               </div>
-              <div className="slds-text-align_center slds-col slds-p-top_x-small">
+              <div
+                className="slds-text-align_center slds-col slds-p-top_x-small">
                 <button
                   className="slds-button slds-button_brand"
                   onClick={() => this.pageGroup(value)}>
@@ -147,6 +162,43 @@ class App extends React.Component{
             </div>
           </div>
         )}
+        <div className="slds-p-horizontal_small">
+          <div className={titleCSS}>
+            Incident Log
+          </div>
+          <div style={{ maxHeight: '200px', overflowY: 'auto' }}>
+            <ul className="slds-list--dotted">
+              {incidents.slice(0).reverse().map((incident, i) => {
+                return (
+                  <li key={i}>
+                    <a href={incident.incident.url} target="_blank">
+                      Incident #{incident.incident.number}
+                    </a>:&nbsp;
+                    The service&nbsp;
+                    <a
+                      href={incident.service.html_url}
+                      target="_blank">
+                      {incident.service.summary}
+                    </a>&nbsp;contacted&nbsp;
+                    {incident.assignment.map((contact) => {
+                      return (
+                        <span
+                          key={contact.assignee.id}>
+                          <a
+                            href={contact.assignee.html_url}
+                            target="_blank">
+                            {contact.assignee.summary}
+                          </a>
+                          &nbsp;
+                        </span>
+                      );
+                    })}
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        </div>
       </div>
     );
   }
@@ -156,7 +208,8 @@ App.propTypes={
   roomId: PropTypes.number,
   response: PropTypes.object,
   services: PropTypes.object,
-  message: PropTypes.string
+  message: PropTypes.string,
+  incidents: PropTypes.array
 };
 
 module.exports=App;
