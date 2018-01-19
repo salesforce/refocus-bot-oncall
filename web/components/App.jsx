@@ -160,45 +160,49 @@ class App extends React.Component{
                 </button>
               </div>
             </div>
+            <div className="slds-p-horizontal_small">
+              <div className={titleCSS}>
+                Incident Log
+              </div>
+              <div style={{ maxHeight: '200px', overflowY: 'auto' }}>
+                <ul className="slds-list--dotted">
+                  {incidents.length === ZERO ?
+                    <li>No PagerDuty incidents created</li> :
+                    <div></div>
+                  }
+                  {incidents.slice(ZERO).reverse().map((incident, i) => {
+                    return (
+                      <li key={i}>
+                        <a href={incident.incident.url} target="_blank">
+                          Incident #{incident.incident.number}
+                        </a>:&nbsp;
+                        The service&nbsp;
+                        <a
+                          href={incident.service.html_url}
+                          target="_blank">
+                          {incident.service.summary}
+                        </a>&nbsp;contacted&nbsp;
+                        {incident.assignment.map((contact) => {
+                          return (
+                            <span
+                              key={contact.assignee.id}>
+                              <a
+                                href={contact.assignee.html_url}
+                                target="_blank">
+                                {contact.assignee.summary}
+                              </a>
+                              &nbsp;
+                            </span>
+                          );
+                        })}
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            </div>
           </div>
         )}
-        <div className="slds-p-horizontal_small">
-          <div className={titleCSS}>
-            Incident Log
-          </div>
-          <div style={{ maxHeight: '200px', overflowY: 'auto' }}>
-            <ul className="slds-list--dotted">
-              {incidents.slice(0).reverse().map((incident, i) => {
-                return (
-                  <li key={i}>
-                    <a href={incident.incident.url} target="_blank">
-                      Incident #{incident.incident.number}
-                    </a>:&nbsp;
-                    The service&nbsp;
-                    <a
-                      href={incident.service.html_url}
-                      target="_blank">
-                      {incident.service.summary}
-                    </a>&nbsp;contacted&nbsp;
-                    {incident.assignment.map((contact) => {
-                      return (
-                        <span
-                          key={contact.assignee.id}>
-                          <a
-                            href={contact.assignee.html_url}
-                            target="_blank">
-                            {contact.assignee.summary}
-                          </a>
-                          &nbsp;
-                        </span>
-                      );
-                    })}
-                  </li>
-                );
-              })}
-            </ul>
-          </div>
-        </div>
       </div>
     );
   }
