@@ -64,7 +64,7 @@ function getServices(offset) {
   });
 }
 
-function pdTriggerEvent(group, message){
+function pdTriggerEvent(group, message, room){
   const obj =
   {
     'incident':
@@ -79,7 +79,8 @@ function pdTriggerEvent(group, message){
       'body':
       {
         'type': 'incident_body',
-        'details': message
+        'details': message,
+        'roomId': room
       }
     }
   };
@@ -121,26 +122,26 @@ function handleSettings(room){
  * When a refocus.bot.data is dispatch it is handled here.
  *
  * @param {BotData} data - Bot Data object that was dispatched
- * @return null
  */
 function handleData(data){
-  console.log('Bot Data Activity', data.name);
+  console.log('Bot Data Activity', data.new ? data.new.name : data.name);
 }
 
 /**
  * When a refocus.bot.actions is dispatch it is handled here.
  *
  * @param {BotAction} action - Bot Action object that was dispatched
- * @return null
  */
 function handleActions(action){
-  console.log('Bot Action Activity', action.name);
+  console.log('Bot Action Activity',
+    action.new ? action.new.name : action.name
+  );
 
   if (action.name === 'getServices'){
     if (!action.response && action.isPending){
       const id = action.id;
       getServices(ZERO).then(function(result) {
-        bdk.respondBotAction(id, result);
+        bdk.respondBotActionNoLog(id, result);
       });
     }
   }
@@ -153,44 +154,62 @@ function handleActions(action){
     if (!action.response && action.isPending) {
       const id = action.id;
       const params = action.parameters;
-      const services = params.filter(param => param.name == 'services')[ZERO];
-      const message = params.filter(param => param.name == 'message')[ZERO].value;
+      const selectedServices = params.filter((param) =>
+        param.name === 'services')[ZERO];
+      const message = params.filter((param) =>
+        param.name === 'message')[ZERO].value;
       const response = {};
-      let completed = ZERO;
-      console.log(services)
-      services.value.forEach((service) => {
-        pdTriggerEvent(service, message).then((res) => {
-          console.log(`${service}: Response StatusCode: ${res.statusCode}`);
-          completed++;
-
-          if (res.statusCode === SUCCESS_CODE) {
-            successfullyPaged.push(res.body.incident.service.summary);
-          } else {
-            unsuccessfullyPaged.push(res.body.incident.service.summary);
-          }
-
-          if (completed === services.value.length) {
-            successfullyPaged.forEach((serviceName, i) => {
-              if (i === ZERO) {
-                responseText += `Successfully Paged: ${serviceName}`;
-              } else {
-                responseText += `, ${serviceName}`;
-              }
-            });
-
-            unsuccessfullyPaged.forEach((serviceName, i) => {
-              if (i === ZERO) {
-                responseText += ` Failed to Page: ${serviceName}`;
-              } else {
-                responseText += `, ${serviceName}`;
-              }
-            });
-
-            response.statusText = responseText;
-            bdk.respondBotAction(id, response);
-          }
-        });
+      const incidentList = [];
+      const pdIncidents = [];
+      selectedServices.value.forEach((service) => {
+        pdIncidents.push(pdTriggerEvent(service, message, action.roomId));
       });
+      Promise.all(pdIncidents)
+        .then((incidents) => {
+          incidents.forEach((res) => {
+            if (res.statusCode === SUCCESS_CODE) {
+              successfullyPaged.push(res.body.incident.service.summary);
+            } else {
+              unsuccessfullyPaged.push(res.body.incident.service.summary);
+            }
+
+            incidentList.push({
+              'incident': {
+                'id': res.body.incident.id,
+                'url': res.body.incident.html_url,
+                'number': res.body.incident.incident_number,
+              },
+              'service': res.body.incident.service,
+              'assignment': res.body.incident.assignments,
+            });
+          });
+
+          successfullyPaged.forEach((serviceName, i) => {
+            if (i === ZERO) {
+              responseText += `Successfully Paged: ${serviceName}`;
+            } else {
+              responseText += `, ${serviceName}`;
+            }
+          });
+
+          unsuccessfullyPaged.forEach((serviceName, i) => {
+            if (i === ZERO) {
+              responseText += ` Failed to Page: ${serviceName}`;
+            } else {
+              responseText += `, ${serviceName}`;
+            }
+          });
+
+          response.statusText = responseText;
+          response.incidents = incidentList;
+          const eventLog = {
+            'log': packageJSON.name + ' has ' + responseText,
+            'context': {
+              'type': 'Event',
+            },
+          };
+          bdk.respondBotAction(id, response, eventLog);
+        });
     }
   }
 }
