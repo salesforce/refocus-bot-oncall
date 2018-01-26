@@ -55,13 +55,14 @@ const config = {
       name: botName,
     }),
     new ZipPlugin({
-          filename: 'bot.zip',
-          include: [/\.js$/, /\.html$/],
-          exclude: ['public']
+      filename: 'bot.zip',
+      include: [/\.js$/, /\.html$/],
+      exclude: ['public']
     }),
     new Dotenv({
       path: './.env',
-      safe: false
+      safe: false,
+      systemvars: true
     }),
   ]
 };

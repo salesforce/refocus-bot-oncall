@@ -15,7 +15,7 @@ module.exports = {
     pdSender: process.env.PD_SENDER,
   },
   staging: {
-    refocusUrl: 'http://refocus-staging.herokuapp.com',
+    refocusUrl: 'http://refocus-staging.internal.salesforce.com',
     sfdcUsername: process.env.SFDC_USERNAME,
     sfdcPassword: process.env.SFDC_PASSWORD,
     loginUrl: process.env.SFDC_URL,
