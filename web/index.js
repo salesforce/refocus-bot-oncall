@@ -231,6 +231,7 @@ function init() {
           });
       }
 
+      currentVariables.imcLink = window.location.href;
       const incidents = _incidentLogs ?
         JSON.parse(_incidentLogs.value).incidents :
         [];
