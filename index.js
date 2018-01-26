@@ -12,7 +12,7 @@
  * This code handles will listen to refocus and handle any activity
  * that requires the bot server attention.
  */
-
+require('dotenv').config();
 const express = require('express');
 const request = require('superagent');
 const app = express();
