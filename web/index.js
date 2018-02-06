@@ -31,7 +31,7 @@ let currentMessage = '';
 let _incidentLogs = {};
 
 const defaultVariables = {};
-const defaultTemplate = 'You\'ve been paged to join an incident room: {{imcLink}}';
+const defaultTemplate = 'Join incident room: {{imcLink}}';
 
 const ZERO = 0;
 
