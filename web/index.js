@@ -30,10 +30,8 @@ let currentTemplate = '';
 let currentMessage = '';
 let _incidentLogs = {};
 
-const href = window.location.href;
-
-const defaultVariables = { href };
-const defaultTemplate = 'You\'ve been paged to join an incident room: {{href}}';
+const defaultVariables = {};
+const defaultTemplate = 'Join incident room: {{imcLink}}';
 
 const ZERO = 0;
 
@@ -177,8 +175,7 @@ function init() {
         .filter((bd) => bd.name === 'onCallIncidents')[ZERO];
       currentServices = _services ? JSON.parse(_services.value) : {};
       currentVariables = _variables ?
-        JSON.parse(_variables.value) :
-        defaultVariables;
+        JSON.parse(_variables.value) : defaultVariables;
       currentTemplate = _template ? _template.value : defaultTemplate;
 
       if (!_services || !_template || !_variables) {

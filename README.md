@@ -29,7 +29,7 @@ Note: If you want to test this locally you will need some environment variables:
 
 ## Refocus Room Settings
 * onCallBotTemplate (optional) - Template for PagerDuty notification message.
-* onCallBotData (optional) - Variables to be used in template.
+* onCallBotData (optional) - Variables to be used in template (variable ```imcLink``` is by default available in templates).
 
 ### Example Room Settings
 
