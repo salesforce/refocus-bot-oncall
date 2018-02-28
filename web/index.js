@@ -87,7 +87,7 @@ function handleActions(action) {
   console.log(botName + ' Bot Action Activity', action);
 
   if (action.detail.name === 'getServices') {
-    bdk.getBotData(roomId)
+    bdk.getBotData(roomId, botName)
       .then((data) => {
         const _services = data.body
           .filter((bd) => bd.name === 'onCallBotServices')[ZERO];
@@ -163,7 +163,7 @@ function getServices() {
  * The actions to take before load.
  */
 function init() {
-  bdk.getBotData(roomId)
+  bdk.getBotData(roomId, botName)
     .then((data) => {
       const _services = data.body
         .filter((bd) => bd.name === 'onCallBotServices')[ZERO];
