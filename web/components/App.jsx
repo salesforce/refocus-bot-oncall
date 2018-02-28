@@ -116,17 +116,17 @@ class App extends React.Component{
     'slds-p-horizontal_medium slds-m-bottom_x-small';
     const titleCSS = 'slds-text-title_caps slds-border_bottom ' +
       'slds-m-around_x-small slds-p-bottom_x-small';
+    const spinnerCSS = 'slds-spinner slds-spinner_medium slds-spinner_brand';
 
     return (
       <div>
         { (_.isEqual(services, {}) || this.state.waiting) ? (
-          <div
-            role="status"
-            style={{ position: 'relative', top: '50px' }}
-            className="slds-spinner slds-spinner--large slds-spinner--brand">
-            <span className="slds-assistive-text">Loading</span>
-            <div className="slds-spinner__dot-a"></div>
-            <div className="slds-spinner__dot-b"></div>
+          <div style={{ height: '6rem', position: 'relative' }}>
+            <div className={spinnerCSS}>
+              <span className="slds-assistive-text">Loading</span>
+              <div className="slds-spinner__dot-a"></div>
+              <div className="slds-spinner__dot-b"></div>
+            </div>
           </div>
         ) : (
           <div>
