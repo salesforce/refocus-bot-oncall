@@ -53,3 +53,9 @@ If you have any ideas on how this project could be improved, please feel free. T
 * Commit changes to your own branch.
 * Push your work back up to your fork.
 * Submit a Pull Request so we can review it!
+
+## Release History
+Follows [semantic versioning](https://docs.npmjs.com/getting-started/semantic-versioning#semver-for-publishers)
+* 1.0.0 Can notify groups via PagerDuty.
+* 1.0.1 Removed reference to refocusConnect.
+
