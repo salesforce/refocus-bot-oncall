@@ -73,7 +73,6 @@ class App extends React.Component{
 
   toggleRtl (e) {
     const rtl = e.target.checked;
-    console.log("bbb")
     this.setState({ rtl });
   }
 
