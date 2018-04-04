@@ -25,7 +25,7 @@ module.exports = {
     pdSender: process.env.PD_SENDER,
   },
   sandbox: {
-    refocusUrl: 'https://refocus.hk.salesforce.com',
+    refocusUrl: 'https://refocus-sandbox.hk.salesforce.com',
     sfdcUsername: process.env.SFDC_USERNAME,
     sfdcPassword: process.env.SFDC_PASSWORD,
     loginUrl: process.env.SFDC_URL,

@@ -57,7 +57,6 @@ class App extends React.Component{
   }
 
   handleSelectChange (value) {
-    
     const values = value.split(',');
     if (Array.isArray(values)) {
       this.setState({ value: values });
