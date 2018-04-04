@@ -23,6 +23,7 @@ class App extends React.Component{
       message: props.message,
       waiting: false,
       incidents: props.incidents ? props.incidents : [],
+      selectOpen: false,
     };
 
     this.closeToast = this.closeToast.bind(this);
@@ -30,6 +31,7 @@ class App extends React.Component{
     this.handleSelectChange = this.handleSelectChange.bind(this);
     this.toggleCheckbox = this.toggleCheckbox.bind(this);
     this.toggleRtl = this.toggleRtl.bind(this);
+    this.handleSelectOpen = this.handleSelectOpen.bind(this);
   }
 
   componentWillReceiveProps(nextProps) {
@@ -55,6 +57,7 @@ class App extends React.Component{
   }
 
   handleSelectChange (value) {
+    
     const values = value.split(',');
     if (Array.isArray(values)) {
       this.setState({ value: values });
@@ -71,6 +74,7 @@ class App extends React.Component{
 
   toggleRtl (e) {
     const rtl = e.target.checked;
+    console.log("bbb")
     this.setState({ rtl });
   }
 
@@ -102,8 +106,13 @@ class App extends React.Component{
     }
   }
 
+  handleSelectOpen() {
+    const currentState = this.state.selectOpen;
+    this.setState({ selectOpen: !currentState });
+  }
+
   render(){
-    const { services, value, incidents } = this.state;
+    const { services, value, incidents, selectOpen } = this.state;
     const options = [];
     Object.keys(services).forEach((key) => {
       const service = {};
@@ -136,13 +145,15 @@ class App extends React.Component{
                 removeToastHandler={this.closeToast}
               />
             }
-            <div className={gridCSS}>
+            <div className={gridCSS} style={selectOpen ? { minHeight: '300px' } : { minHeight: '0px' }}>
               <div className="slds-form-element slds-col">
                 <div
                   className="slds-form-element__control slds-p-around_x-small">
                   <Select
                     multi
                     onChange={this.handleSelectChange}
+                    onOpen={this.handleSelectOpen}
+                    onClose={this.handleSelectOpen}
                     options={options}
                     placeholder="Select Groups to Page"
                     rtl={this.state.rtl}
