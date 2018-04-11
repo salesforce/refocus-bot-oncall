@@ -1,6 +1,7 @@
 import PropTypes from 'prop-types';
 import Select from 'react-select';
 import 'react-select/dist/react-select.css';
+import './overrides.css';
 const _ = require('lodash');
 const React=require('react');
 const ToastMessage=require('./ToastMessage.jsx');
@@ -32,6 +33,7 @@ class App extends React.Component{
     this.toggleCheckbox = this.toggleCheckbox.bind(this);
     this.toggleRtl = this.toggleRtl.bind(this);
     this.handleSelectOpen = this.handleSelectOpen.bind(this);
+    this.handleSelectClose = this.handleSelectClose.bind(this);
   }
 
   componentWillReceiveProps(nextProps) {
@@ -105,8 +107,11 @@ class App extends React.Component{
   }
 
   handleSelectOpen() {
-    const currentState = this.state.selectOpen;
-    this.setState({ selectOpen: !currentState });
+    this.setState({ selectOpen: true });
+  }
+
+  handleSelectClose() {
+    this.setState({ selectOpen: false });
   }
 
   render(){
@@ -119,8 +124,8 @@ class App extends React.Component{
       options.push(service);
     });
 
-    const gridCSS = 'slds-grid slds-form slds-form_stacked ' +
-    'slds-p-horizontal_medium slds-m-bottom_x-small';
+    const gridCSS = 'slds-grid ' +
+    'slds-p-horizontal--medium slds-m-bottom_x-small';
     const titleCSS = 'slds-text-title_caps slds-border_bottom ' +
       'slds-m-around_x-small slds-p-bottom_x-small';
     const spinnerCSS = 'slds-spinner slds-spinner_medium slds-spinner_brand';
@@ -143,7 +148,7 @@ class App extends React.Component{
                 removeToastHandler={this.closeToast}
               />
             }
-            <div className={gridCSS} style={selectOpen ? { minHeight: '300px' } : { minHeight: '0px' }}>
+            <div className={selectOpen ? `${gridCSS} select-open` : gridCSS}>
               <div className="slds-form-element slds-col">
                 <div
                   className="slds-form-element__control slds-p-around_x-small">
@@ -151,7 +156,7 @@ class App extends React.Component{
                     multi
                     onChange={this.handleSelectChange}
                     onOpen={this.handleSelectOpen}
-                    onClose={this.handleSelectOpen}
+                    onClose={this.handleSelectClose}
                     options={options}
                     placeholder="Select Groups to Page"
                     rtl={this.state.rtl}
