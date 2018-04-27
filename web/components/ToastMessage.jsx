@@ -40,7 +40,7 @@ class ToastMessage extends React.Component{
       <div className={show ? '' : 'slds-hide'} style={{ width: '100%' }}>
         <div className="slds-region_narrow slds-is-relative">
           <div className="slds-notify_container slds-is-absolute">
-            <div className="slds-notify slds-notify_toast slds-theme_info" role="alert">
+            <div className="slds-notify slds-notify_toast slds-theme_info slds-size_3-of-4">
               <div className="slds-notify__content">
                 <h2 className="slds-text-heading_small">{ message }</h2>
               </div>

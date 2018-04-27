@@ -59,4 +59,4 @@ Follows [semantic versioning](https://docs.npmjs.com/getting-started/semantic-ve
 * 1.0.0 Can notify groups via PagerDuty.
 * 1.0.1 Removed reference to refocusConnect.
 * 1.0.2 Fixed vertical scroll issue inherited from iframes.
-
+* 1.0.3 Expire toasts after 3 seconds.
