@@ -85,8 +85,6 @@ function handleData(data) {
     currentMessage = unparsedTemp.toString();
   }
 
-
-
   const incidents = _incidentLogs ?
     JSON.parse(_incidentLogs.value).incidents :
     [];
