@@ -235,6 +235,7 @@ function init() {
       const selTemplate=handlebars.compile(currentTemplate);
       const unparsedTemp=selTemplate(currentVariables);
       currentMessage = unparsedTemp.toString();
+      console.log(currentMessage);
       renderUI(currentServices, currentMessage, null, incidents);
     });
 
@@ -249,6 +250,7 @@ function init() {
  * @param {Array} incidentList - List of incidents
  */
 function renderUI(services, message, response, incidentList){
+  console.log(message);
   ReactDOM.render(
     <App
       roomId={ roomId }
