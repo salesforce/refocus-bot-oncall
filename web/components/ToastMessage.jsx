@@ -1,5 +1,6 @@
 const React=require('react');
 import PropTypes from 'prop-types';
+const TIMEOUT = 3000; // ms
 
 class ToastMessage extends React.Component{
   constructor(props){
@@ -21,6 +22,11 @@ class ToastMessage extends React.Component{
   componentDidMount() {
     this.setState({ message: this.props.message });
     this.setState({ show: true });
+    this.interval = setInterval(() => this.closeToast(), TIMEOUT);
+  }
+
+  componentWillUnmount() {
+    clearInterval(this.interval);
   }
 
   componentWillReceiveProps(nextProps) {
@@ -34,7 +40,7 @@ class ToastMessage extends React.Component{
       <div className={show ? '' : 'slds-hide'} style={{ width: '100%' }}>
         <div className="slds-region_narrow slds-is-relative">
           <div className="slds-notify_container slds-is-absolute">
-            <div className="slds-notify slds-notify_toast slds-theme_info" role="alert">
+            <div className="slds-notify slds-notify_toast slds-theme_info slds-size_3-of-4">
               <div className="slds-notify__content">
                 <h2 className="slds-text-heading_small">{ message }</h2>
               </div>

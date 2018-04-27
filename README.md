@@ -60,3 +60,4 @@ Follows [semantic versioning](https://docs.npmjs.com/getting-started/semantic-ve
 * 1.0.1 Removed reference to refocusConnect.
 * 1.0.2 Fixed vertical scroll issue inherited from iframes.
 * 1.0.3 Updating message when botData is updated.
+* 1.0.4 Expire toast after 3 seconds and make toast width 75%.
