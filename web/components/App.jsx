@@ -80,6 +80,7 @@ class App extends React.Component{
 
   pageGroup(services) {
     if (services.length > ZERO) {
+      console.log(this.state.message);
       const serviceReq = {
         'name': 'pagerServices',
         'botId': botName,
