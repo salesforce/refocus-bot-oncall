@@ -1,5 +1,6 @@
 const React=require('react');
 import PropTypes from 'prop-types';
+const TIMEOUT = 3000; // ms
 
 class ToastMessage extends React.Component{
   constructor(props){
@@ -21,6 +22,11 @@ class ToastMessage extends React.Component{
   componentDidMount() {
     this.setState({ message: this.props.message });
     this.setState({ show: true });
+    this.interval = setInterval(() => this.closeToast(), TIMEOUT);
+  }
+
+  componentWillUnmount() {
+    clearInterval(this.interval);
   }
 
   componentWillReceiveProps(nextProps) {
