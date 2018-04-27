@@ -43,7 +43,7 @@ const roomId = bdk.getRoomId();
  * @param {Event} event - The most recent event object
  */
 function handleEvents(event) {
-  console.log(botName + ' Event Activity', event);
+  bdk.log.debug(botName + ' Event Activity', event);
 }
 
 /**
@@ -52,7 +52,7 @@ function handleEvents(event) {
  * @param {Room} room - Room object that was dispatched
  */
 function handleSettings(room) {
-  console.log(botName + ' Room Activity', room);
+  bdk.log.debug(botName + ' Room Activity', room);
 }
 
 /**
@@ -98,7 +98,7 @@ function handleData(data) {
  * @param {BotAction} action - Bot Action object that was dispatched
  */
 function handleActions(action) {
-  console.log(botName + ' Bot Action Activity', action);
+  bdk.log.debug(botName + ' Bot Action Activity', action);
 
   if (action.detail.name === 'getServices') {
     bdk.getBotData(roomId, botName)
