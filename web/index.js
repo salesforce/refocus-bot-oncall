@@ -71,6 +71,22 @@ function handleData(data) {
     _incidentLogs = JSON.parse(data.detail.value);
   }
 
+  if (data.detail.name === 'onCallBotData'){
+    currentVariables = JSON.parse(data.detail.value);
+    const selTemplate=handlebars.compile(currentTemplate);
+    const unparsedTemp=selTemplate(currentVariables);
+    currentMessage = unparsedTemp.toString();
+  }
+
+  if (data.detail.name === 'onCallBotTemplate'){
+    currentTemplate = JSON.parse(data.detail.value);
+    const selTemplate=handlebars.compile(currentTemplate);
+    const unparsedTemp=selTemplate(currentVariables);
+    currentMessage = unparsedTemp.toString();
+  }
+
+
+
   const incidents = _incidentLogs ?
     JSON.parse(_incidentLogs.value).incidents :
     [];
