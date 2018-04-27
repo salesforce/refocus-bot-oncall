@@ -13,7 +13,7 @@
     "test-dev": "nodemon --ext js --watch ./ --exec 'mocha ./test'"
   },
   "dependencies": {
-    "@salesforce/refocus-bdk": "^1.0.1",
+    "@salesforce/refocus-bdk": "^1.5.5",
     "chai": "^4.0.2",
     "dotenv": "4.0.0",
     "dotenv-webpack": "1.5.4",
