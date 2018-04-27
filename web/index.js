@@ -61,7 +61,7 @@ function handleSettings(room) {
  * @param {BotData} data - Bot Data object that was dispatched
  */
 function handleData(data) {
-  console.log(botName + ' Bot Data Activity', data);
+  bdk.log.debug('Bot Data Event Received: ', data.detail);
 
   if (data.detail.name === 'onCallBotServices'){
     currentServices = JSON.parse(data.detail.value);
@@ -91,7 +91,6 @@ function handleData(data) {
     JSON.parse(_incidentLogs.value).incidents :
     [];
 
-  console.log(currentMessage);
   renderUI(currentServices, currentMessage, null, incidents);
 }
 

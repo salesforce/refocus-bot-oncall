@@ -52,6 +52,10 @@ class App extends React.Component{
         this.setState({ response: nextProps.response });
       }
     }
+
+    if (nextProps.message) {
+      this.setState({ message: nextProps.message })
+    }
   }
 
   closeToast(){
