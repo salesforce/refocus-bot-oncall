@@ -91,6 +91,7 @@ function handleData(data) {
     JSON.parse(_incidentLogs.value).incidents :
     [];
 
+  console.log(currentMessage);
   renderUI(currentServices, currentMessage, null, incidents);
 }
 
