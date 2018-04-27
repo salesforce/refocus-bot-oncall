@@ -43,7 +43,7 @@ const roomId = bdk.getRoomId();
  * @param {Event} event - The most recent event object
  */
 function handleEvents(event) {
-  console.log(botName + ' Event Activity', event);
+  bdk.log.debug(botName + ' Event Activity', event);
 }
 
 /**
@@ -52,7 +52,7 @@ function handleEvents(event) {
  * @param {Room} room - Room object that was dispatched
  */
 function handleSettings(room) {
-  console.log(botName + ' Room Activity', room);
+  bdk.log.debug(botName + ' Room Activity', room);
 }
 
 /**
@@ -61,7 +61,7 @@ function handleSettings(room) {
  * @param {BotData} data - Bot Data object that was dispatched
  */
 function handleData(data) {
-  console.log(botName + ' Bot Data Activity', data);
+  bdk.log.debug('Bot Data Event Received: ', data.detail);
 
   if (data.detail.name === 'onCallBotServices'){
     currentServices = JSON.parse(data.detail.value);
@@ -69,6 +69,20 @@ function handleData(data) {
 
   if (data.detail.name === 'onCallIncidents'){
     _incidentLogs = JSON.parse(data.detail.value);
+  }
+
+  if (data.detail.name === 'onCallBotData'){
+    currentVariables = JSON.parse(data.detail.value);
+    const selTemplate=handlebars.compile(currentTemplate);
+    const unparsedTemp=selTemplate(currentVariables);
+    currentMessage = unparsedTemp.toString();
+  }
+
+  if (data.detail.name === 'onCallBotTemplate'){
+    currentTemplate = JSON.parse(data.detail.value);
+    const selTemplate=handlebars.compile(currentTemplate);
+    const unparsedTemp=selTemplate(currentVariables);
+    currentMessage = unparsedTemp.toString();
   }
 
   const incidents = _incidentLogs ?
@@ -84,7 +98,7 @@ function handleData(data) {
  * @param {BotAction} action - Bot Action object that was dispatched
  */
 function handleActions(action) {
-  console.log(botName + ' Bot Action Activity', action);
+  bdk.log.debug(botName + ' Bot Action Activity', action);
 
   if (action.detail.name === 'getServices') {
     bdk.getBotData(roomId, botName)
