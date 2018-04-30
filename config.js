@@ -55,5 +55,17 @@ module.exports = {
     pdToken: process.env.PD_TOKEN,
     pdSender: process.env.PD_SENDER,
   },
+  prodNoUglify: {
+    refocusUrl: 'https://refocus.hk.salesforce.com',
+    sfdcUsername: process.env.SFDC_USERNAME,
+    sfdcPassword: process.env.SFDC_PASSWORD,
+    loginUrl: process.env.SFDC_URL,
+    token: process.env.API_TOKEN,
+    httpProxy: process.env.http_proxy ||
+      'http://public0-proxy1-0-prd.data.sfdc.net:8080',
+    socketToken: process.env.SOCKET_TOKEN,
+    pdToken: process.env.PD_TOKEN,
+    pdSender: process.env.PD_SENDER,
+  },
 };
 
