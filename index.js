@@ -12,32 +12,37 @@
  * This code handles will listen to refocus and handle any activity
  * that requires the bot server attention.
  */
+
 require('dotenv').config();
 const express = require('express');
-const request = require('superagent');
 const app = express();
 const http = require('http');
-const env = process.env.NODE_ENV || 'dev';
-const PORT = process.env.PORT || 5000;
+const path = require('path');
+const request = require('superagent');
+const env = require('./config.js').env;
+const PORT = require('./config.js').port;
 const config = require('./config.js')[env];
 const { socketToken, pdToken, pdSender } = config;
-const packageJSON = require('./package.json');
 const bdk = require('@salesforce/refocus-bdk')(config);
+const packageJSON = require('./package.json');
 const ZERO = 0;
-const ONE = 1;
 const SUCCESS_CODE = 201;
+const SERVICES_LIMIT = 100;
 
 // Installs / Updates the Bot
 bdk.installOrUpdateBot(packageJSON);
 
-// Event Handling
-bdk.refocusConnect(app, socketToken);
-
 let services = [];
 const serviceMap = {};
 
+/**
+ * Query PagerDuty for services
+ *
+ * @param {Integer} offset - Amount of services to offset
+ * @returns {Promise} - PagerDuty get service promise
+ */
 function pdServices(offset){
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     request
       .get('https://api.pagerduty.com/services?limit=100&offset='+offset)
       .set('Authorization', `Token token=${pdToken}`)
@@ -48,11 +53,17 @@ function pdServices(offset){
   });
 }
 
+/**
+ * Get all services
+ *
+ * @param {Integer} offset - Amount of services to offset
+ * @returns {Object} - All the services from PagerDuty
+ */
 function getServices(offset) {
   return pdServices(offset).then((result) => {
     if (result.body.more) {
       services = services.concat(result.body.services);
-      return getServices(offset+100);
+      return getServices(offset + SERVICES_LIMIT);
     }
 
     services = services.concat(result.body.services);
@@ -64,6 +75,14 @@ function getServices(offset) {
   });
 }
 
+/**
+ * Create PagerDuty Trigger Event
+ *
+ * @param {String} group - Action Object
+ * @param {String} message - Salesforce Query
+ * @param {Integer} room - Room Id
+ * @returns {Promise} - PagerDuty trigger promise
+ */
 function pdTriggerEvent(group, message, room){
   const obj =
   {
@@ -85,7 +104,7 @@ function pdTriggerEvent(group, message, room){
     }
   };
 
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     request
       .post('https://api.pagerduty.com/incidents')
       .send(obj)
@@ -102,20 +121,18 @@ function pdTriggerEvent(group, message, room){
  * When a refocus.events is dispatch it is handled here.
  *
  * @param {Event} event - The most recent event object
- * @return null
  */
 function handleEvents(event){
-  console.log('Event Activity', event);
+  bdk.log.info('Event Activity', event.roomId);
 }
 
 /**
  * When a refocus.room.settings is dispatch it is handled here.
  *
  * @param {Room} room - Room object that was dispatched
- * @return null
  */
 function handleSettings(room){
-  console.log('Room Settings Activity', room.id);
+  bdk.log.info('Room Settings Activity', room.name);
 }
 
 /**
@@ -124,7 +141,7 @@ function handleSettings(room){
  * @param {BotData} data - Bot Data object that was dispatched
  */
 function handleData(data){
-  console.log('Bot Data Activity', data.new ? data.new.name : data.name);
+  bdk.log.info('Bot Data Activity', data.new ? data.new.name : data.name);
 }
 
 /**
@@ -133,14 +150,14 @@ function handleData(data){
  * @param {BotAction} action - Bot Action object that was dispatched
  */
 function handleActions(action){
-  console.log('Bot Action Activity',
+  bdk.log.info('Bot Action Activity',
     action.new ? action.new.name : action.name
   );
 
   if (action.name === 'getServices'){
     if (!action.response && action.isPending){
       const id = action.id;
-      getServices(ZERO).then(function(result) {
+      getServices(ZERO).then((result) => {
         bdk.respondBotActionNoLog(id, result);
       });
     }
@@ -214,16 +231,17 @@ function handleActions(action){
   }
 }
 
+// Event Handling
+bdk.refocusConnect(app, socketToken, packageJSON.name);
 app.on('refocus.events', handleEvents);
 app.on('refocus.bot.actions', handleActions);
 app.on('refocus.bot.data', handleData);
 app.on('refocus.room.settings', handleSettings);
-
 app.use(express.static('web/dist'));
 app.get('/*', (req, res) => {
-  res.sendFile(__dirname + '/web/dist/index.html');
+  res.sendFile(path.join(__dirname, '/web/dist/index.html'));
 });
 
-http.Server(app).listen(PORT, function(){
-  console.log('listening on: ', PORT);
+http.Server(app).listen(PORT, () => {
+  bdk.log.info('listening on: ', PORT);
 });
