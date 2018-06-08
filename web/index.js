@@ -87,8 +87,7 @@ function handleData(data) {
   }
 
   const incidents = _incidentLogs ?
-    JSON.parse(_incidentLogs.value).incidents :
-    [];
+    _incidentLogs.incidents : [];
 
   renderUI(currentServices, currentMessage, null, incidents);
 }
@@ -132,8 +131,9 @@ function handleActions(action) {
       { incidents: [] };
     newIncidents.incidents =
       newIncidents.incidents.concat(action.detail.response.incidents);
+
     if (_incidentLogs) {
-      bdk.changeBotData(_incidentLogs.id, JSON.stringify(newIncidents))
+      bdk.changeBotData(_incidentLogs.id, serialize(newIncidents))
         .then((o) => {
           _incidentLogs = o.body;
         });
@@ -142,7 +142,7 @@ function handleActions(action) {
         roomId,
         botName,
         'onCallIncidents',
-        JSON.stringify(action.detail.response)
+        serialize(action.detail.response)
       ).then((o) => {
         _incidentLogs = o.body;
       });
@@ -207,7 +207,7 @@ function init() {
                 roomId,
                 botName,
                 'onCallBotServices',
-                JSON.stringify(currentServices)
+                serialize(currentServices)
               );
             }
 
@@ -222,7 +222,7 @@ function init() {
                 roomId,
                 botName,
                 'onCallBotTemplate',
-                JSON.stringify(currentTemplate)
+                serialize(currentTemplate)
               );
             }
 
@@ -237,7 +237,7 @@ function init() {
                 roomId,
                 botName,
                 'onCallBotData',
-                JSON.stringify(currentVariables)
+                serialize(currentVariables)
               );
             }
           });
