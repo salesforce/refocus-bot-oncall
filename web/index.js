@@ -17,6 +17,7 @@ const _ = require('lodash');
 const handlebars=require('handlebars');
 const React = require('react');
 const ReactDOM = require('react-dom');
+const serialize = require('serialize-javascript');
 const App = require('./components/App.jsx');
 
 const botName = require('../package.json').name;
@@ -110,13 +111,13 @@ function handleActions(action) {
           currentServices = action.detail.response;
 
           if (_services) {
-            bdk.changeBotData(_services.id, JSON.stringify(currentServices));
+            bdk.changeBotData(_services.id, serialize(currentServices));
           } else {
             bdk.createBotData(
               roomId,
               botName,
               'onCallBotServices',
-              JSON.stringify(currentServices)
+              serialize(currentServices)
             );
           }
         }
