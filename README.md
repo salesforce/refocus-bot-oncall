@@ -20,6 +20,7 @@ Note: If you want to test this locally you will need some environment variables:
 * ```NODE_ENV (defaults to 'dev')``` - Used to determine which instance of Refocus to install the bot.
 * ```PD_TOKEN``` - Used to connect to PagerDuty.
 * ```PD_SENDER``` - The email address of the sender.
+* ```REFOCUS_URL``` (OPTIONAL) - Used to specify which refocus instance to point to.
 
 ### Running Locally
 * Clone this repo
@@ -64,3 +65,5 @@ Follows [semantic versioning](https://docs.npmjs.com/getting-started/semantic-ve
 * 1.0.5 Update server code to match scaffold
 * 1.0.6 Remove extra scripts
 * 1.0.7 Use Serialize instead of JSON.stringify.
+* 1.0.8 Add env variable for refocus url
+
