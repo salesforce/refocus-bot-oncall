@@ -63,4 +63,5 @@ Follows [semantic versioning](https://docs.npmjs.com/getting-started/semantic-ve
 * 1.0.4 Expire toast after 3 seconds and make toast width 75%.
 * 1.0.5 Update server code to match scaffold
 * 1.0.6 Remove extra scripts
+* 1.0.7 Fix uglify for production
 
