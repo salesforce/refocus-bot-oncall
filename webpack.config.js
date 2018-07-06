@@ -7,7 +7,7 @@ const ZipPlugin = require('zip-webpack-plugin');
 const env = process.env.NODE_ENV || 'dev';
 const url = require('./config.js')[env].refocusUrl;
 const botName = require('./package.json').name;
-const Uglify = require("uglifyjs-webpack-plugin");
+const Uglify = require('uglifyjs-webpack-plugin');
 
 const config = {
   entry: './web/index.js',
