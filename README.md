@@ -66,4 +66,5 @@ Follows [semantic versioning](https://docs.npmjs.com/getting-started/semantic-ve
 * 1.0.6 Remove extra scripts
 * 1.0.7 Use Serialize instead of JSON.stringify.
 * 1.0.8 Add env variable for refocus url
+* 1.0.9 Fix uglify for production
 
