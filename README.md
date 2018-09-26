@@ -69,4 +69,4 @@ Follows [semantic versioning](https://docs.npmjs.com/getting-started/semantic-ve
 * 1.0.9 Fix uglify for production
 * 1.0.10 Display name
 * 1.0.11 Checking that Service.name exists
-
+* 1.0.12 Multiple requests bug
