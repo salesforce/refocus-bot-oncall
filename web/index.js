@@ -98,61 +98,60 @@ function handleData(data) {
  */
 function handleActions(action) {
   bdk.log.debug(botName + ' Bot Action Activity', action);
-
-  if (action.detail.name === 'getServices') {
-    bdk.getBotData(roomId, botName)
-      .then((data) => {
-        const _services = data.body
-          .filter((bd) => bd.name === 'onCallBotServices')[ZERO];
-
-        if (!_.isEqual(currentServices, action.detail.response)) {
-          currentServices = action.detail.response;
-
-          if (_services) {
-            bdk.changeBotData(_services.id, serialize(currentServices));
-          } else {
-            bdk.createBotData(
-              roomId,
-              botName,
-              'onCallBotServices',
-              serialize(currentServices)
-            );
+  if (action.detail.userId === bdk.getUserId()) {
+    if (action.detail.name === 'getServices') {
+      bdk.getBotData(roomId, botName)
+        .then((data) => {
+          const _services = data.body
+            .filter((bd) => bd.name === 'onCallBotServices')[ZERO];
+          if (!_.isEqual(currentServices, action.detail.response)) {
+            currentServices = action.detail.response;
+            if (_services) {
+              bdk.changeBotData(_services.id, serialize(currentServices));
+            } else {
+              bdk.createBotData(
+                roomId,
+                botName,
+                'onCallBotServices',
+                serialize(currentServices)
+              );
+            }
           }
-        }
-        const incidents = _incidentLogs ?
-          JSON.parse(_incidentLogs.value).incidents :
-          [];
-        renderUI(currentServices, currentMessage, null, incidents);
-      });
-  } else {
-    const newIncidents = _incidentLogs ?
-      JSON.parse(_incidentLogs.value) :
-      { incidents: [] };
-    newIncidents.incidents =
-      newIncidents.incidents.concat(action.detail.response.incidents);
-
-    if (_incidentLogs) {
-      bdk.changeBotData(_incidentLogs.id, serialize(newIncidents))
-        .then((o) => {
-          _incidentLogs = o.body;
+          const incidents = _incidentLogs ?
+            JSON.parse(_incidentLogs.value).incidents :
+            [];
+          renderUI(currentServices, currentMessage, null, incidents);
         });
     } else {
-      bdk.createBotData(
-        roomId,
-        botName,
-        'onCallIncidents',
-        serialize(action.detail.response)
-      ).then((o) => {
-        _incidentLogs = o.body;
-      });
-    }
+      const newIncidents = _incidentLogs ?
+        JSON.parse(_incidentLogs.value) :
+        { incidents: [] };
+      newIncidents.incidents =
+        newIncidents.incidents.concat(action.detail.response.incidents);
 
-    renderUI(
-      currentServices,
-      currentMessage,
-      action.detail.response,
-      newIncidents.incidents
-    );
+      if (_incidentLogs) {
+        bdk.changeBotData(_incidentLogs.id, serialize(newIncidents))
+          .then((o) => {
+            _incidentLogs = o.body;
+          });
+      } else {
+        bdk.createBotData(
+          roomId,
+          botName,
+          'onCallIncidents',
+          serialize(action.detail.response)
+        ).then((o) => {
+          _incidentLogs = o.body;
+        });
+      }
+
+      renderUI(
+        currentServices,
+        currentMessage,
+        action.detail.response,
+        newIncidents.incidents
+      );
+    }
   }
 }
 
