@@ -191,18 +191,30 @@ function handleActions(action){
             if (res.statusCode === SUCCESS_CODE) {
               successfullyPaged.push(res.body.incident.service.summary);
             } else {
-              unsuccessfullyPaged.push(res.body.incident.service.summary);
+              if (res.body.incident) {
+                unsuccessfullyPaged.push(res.body.incident.service.summary);
+              } else if (res.body.error) {
+                res.body.error.errors.forEach((error,i) => {
+                  if (i === ZERO) {
+                    responseText += error;
+                  } else {
+                    responseText += `, ${error}`;
+                  }
+                })
+              }
             }
 
-            incidentList.push({
-              'incident': {
-                'id': res.body.incident.id,
-                'url': res.body.incident.html_url,
-                'number': res.body.incident.incident_number,
-              },
-              'service': res.body.incident.service,
-              'assignment': res.body.incident.assignments,
-            });
+            if (res.body.incident) {
+              incidentList.push({
+                'incident': {
+                  'id': res.body.incident.id,
+                  'url': res.body.incident.html_url,
+                  'number': res.body.incident.incident_number,
+                },
+                'service': res.body.incident.service,
+                'assignment': res.body.incident.assignments,
+              });
+            }
           });
 
           successfullyPaged.forEach((serviceName, i) => {
