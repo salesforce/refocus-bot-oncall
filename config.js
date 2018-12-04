@@ -29,9 +29,9 @@ module.exports = {
     pdToken: process.env.PD_TOKEN,
     pdSender: process.env.PD_SENDER,
   },
-  staging: {
+  perf: {
     refocusUrl: process.env.REFOCUS_URL ||
-      'http://refocus-staging.herokuapp.com',
+      'http://refocus-rooms-perf.herokuapp.com',
     sfdcUsername: process.env.SFDC_USERNAME,
     sfdcPassword: process.env.SFDC_PASSWORD,
     loginUrl: process.env.SFDC_URL,
