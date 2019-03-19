@@ -30,7 +30,10 @@ const SUCCESS_CODE = 201;
 const SERVICES_LIMIT = 100;
 
 // Installs / Updates the Bot
-bdk.installOrUpdateBot(packageJSON);
+bdk.installOrUpdateBot(packageJSON)
+  .then(() => {
+    bdk.refocusConnect(app, socketToken, packageJSON.name);
+  })
 
 let services = [];
 const serviceMap = {};
@@ -248,7 +251,6 @@ function handleActions(action){
 }
 
 // Event Handling
-bdk.refocusConnect(app, socketToken, packageJSON.name);
 app.on('refocus.events', handleEvents);
 app.on('refocus.bot.actions', handleActions);
 app.on('refocus.bot.data', handleData);
