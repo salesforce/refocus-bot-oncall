@@ -30,8 +30,7 @@ module.exports = {
     pdSender: process.env.PD_SENDER,
   },
   perf: {
-    refocusUrl: process.env.REFOCUS_URL ||
-      'http://refocus-rooms-perf.herokuapp.com',
+    refocusUrl: process.env.REFOCUS_URL,
     sfdcUsername: process.env.SFDC_USERNAME,
     sfdcPassword: process.env.SFDC_PASSWORD,
     loginUrl: process.env.SFDC_URL,
