@@ -72,4 +72,4 @@ Follows [semantic versioning](https://docs.npmjs.com/getting-started/semantic-ve
 * 1.0.12 Multiple requests bug
 * 1.0.13 Fixing bug with disabled services
 * 1.0.14 New token workflow.
-
+* 1.0.15 Clean up config.js.
