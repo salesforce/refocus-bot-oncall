@@ -1,7 +1,7 @@
 {
   "name": "Oncall-Bot",
   "displayName": "Oncall",
-  "version": "1.0.14",
+  "version": "1.0.15",
   "description": "A bot for PagerDuty integration",
   "url": "https://git.soma.salesforce.com/Refocus-Bots/Oncall-Bot",
   "scripts": {
