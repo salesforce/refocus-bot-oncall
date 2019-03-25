@@ -40,7 +40,7 @@ module.exports = {
     pdSender: process.env.PD_SENDER,
   },
   production: {
-    refocusUrl: process.env.REFOCUS_PRODUCTION_URL,
+    refocusUrl: process.env.REFOCUS_PROD_URL,
     token: process.env.API_TOKEN,
     socketToken: process.env.SOCKET_TOKEN,
     pdToken: process.env.PD_TOKEN,
