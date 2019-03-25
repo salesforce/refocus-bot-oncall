@@ -18,7 +18,8 @@ module.exports = {
   env: process.env.NODE_ENV || 'dev',
   port: process.env.PORT || DEFAULT_PORT,
   dev: {
-    refocusUrl: process.env.REFOCUS_DEV_URL,
+    refocusUrl: process.env.REFOCUS_DEV_URL ||
+      'http://localhost:3000',
     token: process.env.API_TOKEN,
     socketToken: process.env.SOCKET_TOKEN,
     pdToken: process.env.PD_TOKEN,
