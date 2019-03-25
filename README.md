@@ -46,7 +46,6 @@ Note: If you want to test this locally you will need some environment variables:
 ### Running Tests
 While creating some aspects of this project we used Test Driven Developement (TDD). Invoking "npm test" from the command line will run all of these test scripts to ensure everything is working correctly.
 
-
 ## Contributing
 If you have any ideas on how this project could be improved, please feel free. The steps involved are:
 * Fork the repo on GitHub.
