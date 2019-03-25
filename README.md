@@ -13,7 +13,7 @@ These instructions will enable you to have a copy of this project up and running
 ### Prerequisites
 * [Node.js](https://nodejs.org/en/)
 
-### Env Variables
+### Environment variables
 Note: If you want to test this locally you will need some environment variables:
 * ```API_TOKEN``` - Used for Requests to Refocus. Created in refocus/tokens/new.
 * ```SOCKET_TOKEN``` (Returned Upon Installation) - Used for Socket Connection.
