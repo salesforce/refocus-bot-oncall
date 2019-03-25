@@ -40,8 +40,7 @@ module.exports = {
     pdSender: process.env.PD_SENDER,
   },
   sandbox: {
-    refocusUrl: process.env.REFOCUS_SANDBOX_URL ||
-      'https://refocus-sandbox.hk.salesforce.com',
+    refocusUrl: process.env.REFOCUS_SANDBOX_URL,
     sfdcUsername: process.env.SFDC_USERNAME,
     sfdcPassword: process.env.SFDC_PASSWORD,
     loginUrl: process.env.SFDC_URL,
@@ -51,8 +50,7 @@ module.exports = {
     pdSender: process.env.PD_SENDER,
   },
   production: {
-    refocusUrl: process.env.REFOCUS_PRODUCTION_URL ||
-      'https://refocus.hk.salesforce.com',
+    refocusUrl: process.env.REFOCUS_PRODUCTION_URL,
     sfdcUsername: process.env.SFDC_USERNAME,
     sfdcPassword: process.env.SFDC_PASSWORD,
     loginUrl: process.env.SFDC_URL,
