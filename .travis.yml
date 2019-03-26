@@ -3,7 +3,6 @@ node_js:
   - "8"
 before_script:
   - npm install
+# npm test commands runs lint && coverage && test
 script:
-  - npm run lint
   - npm test
-  - npm run coverage
