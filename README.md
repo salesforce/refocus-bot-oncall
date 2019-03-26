@@ -1,19 +1,26 @@
 # Oncall-Bot
+
+[![Build Status](https://travis-ci.org/salesforce/refocus-bot-oncall.svg?branch=master)](https://travis-ci.org/salesforce/refocus-bot-oncall.svg)
+
 This is the repository for a bot that enables Site Reliability to reach out to Service Matter Experts (SMEs) during incidents. Our users need a way to contact people from Rooms who are on-call during incidents. It was designed and developed to be used inside & in conjunction with [Refocus Rooms](https://github.com/salesforce/refocus).
 
 ## Features
+
 * Ability to search escalation policies (https://support.pagerduty.com/v1/docs/escalation-policies).
 * Ability to select one or multiple escalation policies.
 * 1-button paging feature of selected escalation policies.
 * Notification message text is configurable.
 
 ## Getting Started
+
 These instructions will enable you to have a copy of this project up and running on your local machine for development and testing purposes.
 
 ### Prerequisites
+
 * [Node.js](https://nodejs.org/en/)
 
 ### Environment variables
+
 Note: If you want to test this locally you will need some environment variables:
 * ```API_TOKEN``` - Used for Requests to Refocus. Created in refocus/tokens/new.
 * ```SOCKET_TOKEN``` (Returned Upon Installation) - Used for Socket Connection.
