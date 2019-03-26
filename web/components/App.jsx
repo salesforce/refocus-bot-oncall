@@ -14,7 +14,7 @@ const _ = require('lodash');
 const React=require('react');
 const ToastMessage=require('./ToastMessage.jsx');
 const botName = require('../../package.json').name;
-const env = process.env.NODE_ENV || 'dev';
+const env = require('../../config.js').env;
 const config = require('../../config.js')[env];
 const bdk = require('@salesforce/refocus-bdk')(config);
 const ZERO = 0;
@@ -44,6 +44,7 @@ class App extends React.Component{
     this.handleSelectClose = this.handleSelectClose.bind(this);
   }
 
+  /* eslint-disable react/no-deprecated */
   componentWillReceiveProps(nextProps) {
     this.setState({
       services: nextProps.services,
@@ -62,7 +63,7 @@ class App extends React.Component{
     }
 
     if (nextProps.message) {
-      this.setState({ message: nextProps.message })
+      this.setState({ message: nextProps.message });
     }
   }
 
@@ -199,12 +200,14 @@ class App extends React.Component{
                   {incidents.slice(ZERO).reverse().map((incident, i) => {
                     return (
                       <li key={i}>
-                        <a href={incident.incident.url} target="_blank">
+                        <a href={incident.incident.url}
+                          target="_blank" rel="noopener noreferrer">
                           Incident #{incident.incident.number}
                         </a>:&nbsp;
                         The service&nbsp;
                         <a
                           href={incident.service.html_url}
+                          rel="noopener noreferrer"
                           target="_blank">
                           {incident.service.summary}
                         </a>&nbsp;contacted&nbsp;
@@ -214,6 +217,7 @@ class App extends React.Component{
                               key={contact.assignee.id}>
                               <a
                                 href={contact.assignee.html_url}
+                                rel="noopener noreferrer"
                                 target="_blank">
                                 {contact.assignee.summary}
                               </a>

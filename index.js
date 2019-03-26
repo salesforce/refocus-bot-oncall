@@ -33,7 +33,7 @@ const SERVICES_LIMIT = 100;
 bdk.installOrUpdateBot(packageJSON)
   .then(() => {
     bdk.refocusConnect(app, socketToken, packageJSON.name);
-  })
+  });
 
 let services = [];
 const serviceMap = {};
@@ -44,10 +44,10 @@ const serviceMap = {};
  * @param {Integer} offset - Amount of services to offset
  * @returns {Promise} - PagerDuty get service promise
  */
-function pdServices(offset){
+function pdServices(offset) {
   return new Promise((resolve) => {
     request
-      .get('https://api.pagerduty.com/services?limit=100&offset='+offset)
+      .get('https://api.pagerduty.com/services?limit=100&offset=' + offset)
       .set('Authorization', `Token token=${pdToken}`)
       .set('Accept', 'application/vnd.pagerduty+json;version=2')
       .end((error, res) => {
@@ -74,7 +74,7 @@ function getServices(offset) {
       if (service.name) {
         serviceMap[service.name] = service.id;
       } else {
-        bdk.log.warn('service missing name',service)
+        bdk.log.warn('service missing name', service);
       }
     });
 
@@ -90,26 +90,26 @@ function getServices(offset) {
  * @param {Integer} room - Room Id
  * @returns {Promise} - PagerDuty trigger promise
  */
-function pdTriggerEvent(group, message, room){
+function pdTriggerEvent(group, message, room) {
   const obj =
-  {
-    'incident':
     {
-      'type': 'incident',
-      'title': message,
-      'service':
-      {
-        'id': group,
-        'type': 'service_reference'
-      },
-      'body':
-      {
-        'type': 'incident_body',
-        'details': message,
-        'roomId': room
-      }
-    }
-  };
+      'incident':
+        {
+          'type': 'incident',
+          'title': message,
+          'service':
+            {
+              'id': group,
+              'type': 'service_reference'
+            },
+          'body':
+            {
+              'type': 'incident_body',
+              'details': message,
+              'roomId': room
+            }
+        }
+    };
 
   return new Promise((resolve) => {
     request
@@ -129,7 +129,7 @@ function pdTriggerEvent(group, message, room){
  *
  * @param {Event} event - The most recent event object
  */
-function handleEvents(event){
+function handleEvents(event) {
   bdk.log.info('Event Activity', event.roomId);
 }
 
@@ -138,7 +138,7 @@ function handleEvents(event){
  *
  * @param {Room} room - Room object that was dispatched
  */
-function handleSettings(room){
+function handleSettings(room) {
   bdk.log.info('Room Settings Activity', room.name);
 }
 
@@ -147,8 +147,9 @@ function handleSettings(room){
  *
  * @param {BotData} data - Bot Data object that was dispatched
  */
-function handleData(data){
-  bdk.log.info('Bot Data Activity', data.new ? data.new.name : data.name);
+function handleData(data) {
+  bdk.log.info('Bot Data Activity',
+    data.new ? data.new.name : data.name);
 }
 
 /**
@@ -156,13 +157,13 @@ function handleData(data){
  *
  * @param {BotAction} action - Bot Action object that was dispatched
  */
-function handleActions(action){
+function handleActions(action) {
   bdk.log.info('Bot Action Activity',
     action.new ? action.new.name : action.name
   );
 
-  if (action.name === 'getServices'){
-    if (!action.response && action.isPending){
+  if (action.name === 'getServices') {
+    if (!action.response && action.isPending) {
       const id = action.id;
       getServices(ZERO).then((result) => {
         bdk.respondBotActionNoLog(id, result);
@@ -170,7 +171,7 @@ function handleActions(action){
     }
   }
 
-  if (action.name === 'pagerServices'){
+  if (action.name === 'pagerServices') {
     const successfullyPaged = [];
     const unsuccessfullyPaged = [];
     let responseText = '';
@@ -193,18 +194,16 @@ function handleActions(action){
           incidents.forEach((res) => {
             if (res.statusCode === SUCCESS_CODE) {
               successfullyPaged.push(res.body.incident.service.summary);
-            } else {
-              if (res.body.incident) {
-                unsuccessfullyPaged.push(res.body.incident.service.summary);
-              } else if (res.body.error) {
-                res.body.error.errors.forEach((error,i) => {
-                  if (i === ZERO) {
-                    responseText += error;
-                  } else {
-                    responseText += `, ${error}`;
-                  }
-                })
-              }
+            } else if (res.body.incident) {
+              unsuccessfullyPaged.push(res.body.incident.service.summary);
+            } else if (res.body.error) {
+              res.body.error.errors.forEach((error, i) => {
+                if (i === ZERO) {
+                  responseText += error;
+                } else {
+                  responseText += `, ${error}`;
+                }
+              });
             }
 
             if (res.body.incident) {
