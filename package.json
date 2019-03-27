@@ -10,7 +10,8 @@
     "build-ui": "webpack --config webpack.config.js",
     "lint": "eslint --ext=js --ext=jsx .",
     "postinstall": "npm run build-ui",
-    "test": "./node_modules/.bin/mocha --reporter spec",
+    "coverage": "istanbul cover node_modules/mocha/bin/_mocha tests/*",
+    "test": "npm run lint && mocha --recursive tests/* && npm run coverage",
     "test-dev": "nodemon --ext js --watch ./ --exec 'mocha ./test'"
   },
   "dependencies": {
@@ -66,7 +67,8 @@
     "url-loader": "^0.5.9",
     "webpack": "^2.6.1",
     "webpack-dev-server": "^2.4.5",
-    "zip-webpack-plugin": "2.0.0"
+    "zip-webpack-plugin": "2.0.0",
+    "istanbul": "^0.4.5"
   },
   "metadata": {
     "actions": [

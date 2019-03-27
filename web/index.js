@@ -8,19 +8,18 @@
 /**
  * /web/index.js
  *
- * This code handles intial render of the bot and any rerenders triggered
+ * This code handles initial render of the bot and any re-renders triggered
  * from javascript events.
  */
-
 const _ = require('lodash');
-const handlebars=require('handlebars');
+const handlebars = require('handlebars');
 const React = require('react');
 const ReactDOM = require('react-dom');
 const serialize = require('serialize-javascript');
 const App = require('./components/App.jsx');
 
 const botName = require('../package.json').name;
-const env = process.env.NODE_ENV || 'dev';
+const env = require('../config.js').env;
 const config = require('../config.js')[env];
 const bdk = require('@salesforce/refocus-bdk')(config);
 
@@ -36,6 +35,26 @@ const defaultTemplate = 'Join incident room: {{imcLink}}';
 const ZERO = 0;
 
 const roomId = bdk.getRoomId();
+
+/**
+ * global {Integer} roomId - Room Id that is provided from refocus
+ * @param {Object} services - Services Selected
+ * @param {String} message - Message Response
+ * @param {Object} response - Action Response
+ * @param {Array} incidentList - List of incidents
+ */
+function renderUI(services, message, response, incidentList) {
+  ReactDOM.render(
+    <App
+      roomId={roomId}
+      services={services}
+      message={message}
+      response={response}
+      incidents={incidentList}
+    />,
+    document.getElementById(botName)
+  );
+}
 
 /**
  * When a refocus.events is dispatch it is handled here.
@@ -63,25 +82,25 @@ function handleSettings(room) {
 function handleData(data) {
   bdk.log.debug('Bot Data Event Received: ', data.detail);
 
-  if (data.detail.name === 'onCallBotServices'){
+  if (data.detail.name === 'onCallBotServices') {
     currentServices = JSON.parse(data.detail.value);
   }
 
-  if (data.detail.name === 'onCallIncidents'){
+  if (data.detail.name === 'onCallIncidents') {
     _incidentLogs = JSON.parse(data.detail.value);
   }
 
-  if (data.detail.name === 'onCallBotData'){
+  if (data.detail.name === 'onCallBotData') {
     currentVariables = JSON.parse(data.detail.value);
-    const selTemplate=handlebars.compile(currentTemplate);
-    const unparsedTemp=selTemplate(currentVariables);
+    const selTemplate = handlebars.compile(currentTemplate);
+    const unparsedTemp = selTemplate(currentVariables);
     currentMessage = unparsedTemp.toString();
   }
 
-  if (data.detail.name === 'onCallBotTemplate'){
+  if (data.detail.name === 'onCallBotTemplate') {
     currentTemplate = JSON.parse(data.detail.value);
-    const selTemplate=handlebars.compile(currentTemplate);
-    const unparsedTemp=selTemplate(currentVariables);
+    const selTemplate = handlebars.compile(currentTemplate);
+    const unparsedTemp = selTemplate(currentVariables);
     currentMessage = unparsedTemp.toString();
   }
 
@@ -245,33 +264,13 @@ function init() {
       const incidents = _incidentLogs ?
         JSON.parse(_incidentLogs.value).incidents :
         [];
-      const selTemplate=handlebars.compile(currentTemplate);
-      const unparsedTemp=selTemplate(currentVariables);
+      const selTemplate = handlebars.compile(currentTemplate);
+      const unparsedTemp = selTemplate(currentVariables);
       currentMessage = unparsedTemp.toString();
       renderUI(currentServices, currentMessage, null, incidents);
     });
 
   getServices();
-}
-
-/**
- * global {Integer} roomId - Room Id that is provided from refocus
- * @param {Object} services - Services Selected
- * @param {String} message - Message Response
- * @param {Object} response - Action Response
- * @param {Array} incidentList - List of incidents
- */
-function renderUI(services, message, response, incidentList){
-  ReactDOM.render(
-    <App
-      roomId={ roomId }
-      services={ services }
-      message = { message }
-      response={ response }
-      incidents={ incidentList }
-    />,
-    document.getElementById(botName)
-  );
 }
 
 document.getElementById(botName)

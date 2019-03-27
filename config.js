@@ -11,7 +11,6 @@
  * config.js
  * Config file for different deployments - dev, staging, production
  */
-
 const DEFAULT_PORT = 5000;
 
 module.exports = {
