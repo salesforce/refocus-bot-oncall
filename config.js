@@ -19,29 +19,29 @@ module.exports = {
   dev: {
     refocusUrl: process.env.REFOCUS_DEV_URL ||
       'http://localhost:3000',
+    refocusRealtimeUrl: process.env.REFOCUS_REALTIME_URL,
     token: process.env.API_TOKEN,
-    socketToken: process.env.SOCKET_TOKEN,
     pdToken: process.env.PD_TOKEN,
     pdSender: process.env.PD_SENDER,
   },
   perf: {
     refocusUrl: process.env.REFOCUS_PERF_URL,
+    refocusRealtimeUrl: process.env.REFOCUS_REALTIME_URL,
     token: process.env.API_TOKEN,
-    socketToken: process.env.SOCKET_TOKEN,
     pdToken: process.env.PD_TOKEN,
     pdSender: process.env.PD_SENDER,
   },
   sandbox: {
     refocusUrl: process.env.REFOCUS_SANDBOX_URL,
+    refocusRealtimeUrl: process.env.REFOCUS_REALTIME_URL,
     token: process.env.API_TOKEN,
-    socketToken: process.env.SOCKET_TOKEN,
     pdToken: process.env.PD_TOKEN,
     pdSender: process.env.PD_SENDER,
   },
   production: {
     refocusUrl: process.env.REFOCUS_PROD_URL,
+    refocusRealtimeUrl: process.env.REFOCUS_REALTIME_URL,
     token: process.env.API_TOKEN,
-    socketToken: process.env.SOCKET_TOKEN,
     pdToken: process.env.PD_TOKEN,
     pdSender: process.env.PD_SENDER,
   },
