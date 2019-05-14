@@ -26,7 +26,7 @@ module.exports = {
   },
   perf: {
     refocusUrl: process.env.REFOCUS_URL_PERF,
-    refocusRealtimeUrl: process.env.REFOCUS_REALTIME_URL,
+    refocusRealtimeUrl: process.env.REFOCUS_REALTIME_URL_PERF,
     token: process.env.API_TOKEN_PERF,
   },
   sandbox: {
@@ -36,8 +36,8 @@ module.exports = {
   },
   production: {
     refocusUrl: process.env.REFOCUS_URL_PROD,
-    refocusRealtimeUrl: process.env.REFOCUS_REALTIME_URL_PERF,
-    token: process.env.API_TOKEN_PERF,
+    refocusRealtimeUrl: process.env.REFOCUS_REALTIME_URL_PROD,
+    token: process.env.API_TOKEN_PROD,
   },
 };
 
