@@ -71,10 +71,15 @@ function getServices(offset) {
 
     services = services.concat(result.body.services);
     services.forEach((service) => {
-      if (service.name) {
-        serviceMap[service.name] = service.id;
+      if (service) {
+        if (service.name) {
+          serviceMap[service.name] = service.id;
+        } else {
+          bdk.log.warn('service missing name', service);
+        }
       } else {
-        bdk.log.warn('service missing name', service);
+        bdk.log.warn('broken service', service);
+        bdk.log.warn('full list of services', services);
       }
     });
 
