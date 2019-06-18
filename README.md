@@ -82,3 +82,5 @@ Follows [semantic versioning](https://docs.npmjs.com/getting-started/semantic-ve
 * 1.0.15 Clean up config.js.
 * 1.0.16 Update dependencies from npm audit.
 * 1.0.17 Added refocus realtime url.
+* 1.0.18 Added check for a service before trying to access name.
+
