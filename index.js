@@ -212,6 +212,8 @@ function handleActions(action) {
             }
 
             if (res.body.incident) {
+              console.log('Successfully Paged:', res.body.incident.service);
+              console.log('Incident Id:', res.body.incident.id);
               incidentList.push({
                 'incident': {
                   'id': res.body.incident.id,
