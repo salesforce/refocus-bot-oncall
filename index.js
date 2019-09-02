@@ -121,20 +121,21 @@ function getServices(offset) {
 export function getIncidents(pdData) {
   const tteList = [];
   return new Promise((resolve) => {
+    // eslint-disable-next-line consistent-return
     Promise.all(pdData.map((obj) => {
       if (obj.incident) {
         return pdIncidentDetail(obj.incident.id).then((result) => {
           const tte = {};
           if (result.body) {
             tte.startTime = result.body.log_entries
-              .filter((entry) => entry.type === 'notify_log_entry')[0]
+              .filter((entry) => entry.type === 'notify_log_entry')[ZERO]
               .created_at;
             const endTime = result.body.log_entries
               .filter((entry) => {
                 return entry.type === 'acknowledge_log_entry' ||
                  entry.type === 'resolve_log_entry';
               });
-            tte.endTime = endTime[0] ? endTime[0].created_at : null;
+            tte.endTime = endTime[ZERO] ? endTime[ZERO].created_at : null;
             tte.team = obj.service.summary;
             tteList.push(tte);
           }
@@ -188,6 +189,23 @@ function pdTriggerEvent(group, message, room) {
 }
 
 /**
+ * Saves the current list of active rooms to a json file locally
+ * can be read on restart to make active room list persistent.
+ * @returns {Promise} - resolves when data is saved, or error occurs
+ */
+function updateLocalRoomData() {
+  return new Promise((resolve, reject) => {
+    fs.writeFile('activeRooms.json',
+      JSON.stringify(roomsToUpdate), 'utf8', (err) => {
+        if (err) {
+          reject(err);
+        }
+        resolve();
+      });
+  });
+}
+
+/**
  * When a refocus.events is dispatch it is handled here.
  *
  * @param {Event} event - The most recent event object
@@ -222,24 +240,6 @@ function handleData(data) {
     const newRoom = { roomId, botId: botName };
     roomsToUpdate.push(newRoom);
   }
-}
-
-
-/**
- * Saves the current list of active rooms to a json file locally
- * can be read on restart to make active room list persistent.
- * @returns {Promise} - resolves when data is saved, or error occurs
- */
-function updateLocalRoomData() {
-  return new Promise((resolve, reject) => {
-    fs.writeFile('activeRooms.json',
-      JSON.stringify(roomsToUpdate), 'utf8', (err) => {
-        if (err) {
-          reject(err);
-        }
-        resolve();
-      });
-  });
 }
 
 /**
@@ -323,8 +323,8 @@ function updateActiveRoomIncidents() {
     if (obj.roomId && obj.botId) {
       bdk.getBotData(obj.roomId, obj.botId, 'onCallIncidents')
         .then((data) => {
-          if (data.body && data.body[0]) {
-            const parsedData = JSON.parse(data.body[0].value);
+          if (data.body && data.body[ZERO]) {
+            const parsedData = JSON.parse(data.body[ZERO].value);
             const pdData = parsedData.incidents;
             getIncidents(pdData).then((tteList) => {
               bdk.upsertBotData(
@@ -404,8 +404,8 @@ function handleActions(action) {
             }
 
             if (res.body.incident) {
-              console.log('Successfully Paged:', res.body.incident.service);
-              console.log('Incident Id:', res.body.incident.id);
+              bdk.log.info('Successfully Paged:', res.body.incident.service);
+              bdk.log.info('Incident Id:', res.body.incident.id);
               incidentList.push({
                 'incident': {
                   'id': res.body.incident.id,
