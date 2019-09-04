@@ -11,7 +11,7 @@
  */
 /* eslint camelcase: 0 */
 const expect = require('chai').expect;
-const createTTE = require('../index.js').createTTE;
+const createTTE = require('../utils/tte.js').createTTE;
 
 const testTeamData='TestTeam';
 const testPdData ={};

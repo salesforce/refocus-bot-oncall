@@ -28,6 +28,7 @@ const POLLING_DELAY = config.pollingDelay;
 const bdk = require('@salesforce/refocus-bdk')(config);
 const packageJSON = require('./package.json');
 const serialize = require('serialize-javascript');
+const createTTE = require('../utils/tte.js').createTTE;
 const botName = packageJSON.name;
 const ZERO = 0;
 const SUCCESS_CODE = 201;
@@ -110,27 +111,6 @@ function getServices(offset) {
 
     return serviceMap;
   });
-}
-
-/**
- * Create TTE
- * @param {String} team - team paged
- * @param {Array} pdData - list of pagerduty data
- * @returns {Object} - A tte
- */
-function createTTE(team, pdData) {
-  const tte = {};
-  tte.startTime = pdData.body.log_entries
-    .filter((entry) => entry.type === 'notify_log_entry')[ZERO]
-    .created_at;
-  const endTime = pdData.body.log_entries
-    .filter((entry) => {
-      return entry.type === 'acknowledge_log_entry' ||
-       entry.type === 'resolve_log_entry';
-    });
-  tte.endTime = endTime[ZERO] ? endTime[ZERO].created_at : null;
-  tte.team = team;
-  return tte ;
 }
 
 /**
@@ -457,9 +437,6 @@ function handleActions(action) {
     }
   }
 }
-module.exports = {
-  createTTE
-};
 
 // Event Handling
 app.on('refocus.events', handleEvents);
