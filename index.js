@@ -79,7 +79,9 @@ function pdIncidentDetail(id) {
       .set('Accept', 'application/vnd.pagerduty+json;version=2')
       .end((error, res) => {
         resolve(res);
-      });
+      })
+      .catch((error) => bdk.log.error(
+        'pdIncidentDetail error', error));
   });
 }
 
