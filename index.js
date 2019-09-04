@@ -113,31 +113,41 @@ function getServices(offset) {
 }
 
 /**
+ * Create TTE
+ * @param {Array} data - service data
+ * @param {Array} pdData - list of pagerduty data
+ * @returns {Object} - A tte
+ */
+function createTTE(data, pdData) {
+  const tte = {};
+  tte.startTime = pdData.body.log_entries
+    .filter((entry) => entry.type === 'notify_log_entry')[ZERO]
+    .created_at;
+  const endTime = pdData.body.log_entries
+    .filter((entry) => {
+      return entry.type === 'acknowledge_log_entry' ||
+       entry.type === 'resolve_log_entry';
+    });
+  tte.endTime = endTime[ZERO] ? endTime[ZERO].created_at : null;
+  tte.team = data.service.summary;
+  return tte ;
+}
+
+/**
  * Get all incident timestamps
  *
  * @param {Array} pdData - list of pagerduty data
  * @returns {Array} - All the ttes
  */
-export function getIncidents(pdData) {
+function getIncidents(pdData) {
   const tteList = [];
   return new Promise((resolve) => {
     // eslint-disable-next-line consistent-return
     Promise.all(pdData.map((obj) => {
       if (obj.incident) {
         return pdIncidentDetail(obj.incident.id).then((result) => {
-          const tte = {};
           if (result.body) {
-            tte.startTime = result.body.log_entries
-              .filter((entry) => entry.type === 'notify_log_entry')[ZERO]
-              .created_at;
-            const endTime = result.body.log_entries
-              .filter((entry) => {
-                return entry.type === 'acknowledge_log_entry' ||
-                 entry.type === 'resolve_log_entry';
-              });
-            tte.endTime = endTime[ZERO] ? endTime[ZERO].created_at : null;
-            tte.team = obj.service.summary;
-            tteList.push(tte);
+            tteList.push(createTTE(obj, result));
           }
         });
       }
@@ -447,6 +457,9 @@ function handleActions(action) {
     }
   }
 }
+module.exports = {
+  createTTE
+};
 
 // Event Handling
 app.on('refocus.events', handleEvents);

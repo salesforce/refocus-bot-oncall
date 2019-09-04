@@ -9,12 +9,32 @@
 /**
  * tests/index.js
  */
+/* eslint camelcase: 0 */
 const expect = require('chai').expect;
+const createTTE = require('../index.js').createTTE;
+
+const testPdData ={};
+testPdData.body={};
+testPdData.body.log_entries =[{
+  type: 'notify_log_entry',
+  created_at: '2019-09-04T09:16:41Z',
+},
+{
+  type: 'acknowledge_log_entry',
+  created_at: '2019-09-04T09:16:41Z',
+}];
+const testTeamData={};
+testTeamData.service={};
+testTeamData.service.summary='TestTeam';
 
 describe('index.js >', () => {
-  describe(' >', () => {
-    it('>', () => {
-      expect(true).to.equal(true);
+  describe(' createTTE tests', () => {
+    it('should return a single tte', () => {
+      const expected ={ startTime: '2019-09-04T09:16:41Z',
+        endTime: '2019-09-04T09:16:41Z',
+        team: 'TestTeam' };
+      const tte = createTTE(testTeamData, testPdData);
+      expect(tte).to.deep.equal(expected);
     });
   });
 });

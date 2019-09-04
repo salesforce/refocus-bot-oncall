@@ -11,7 +11,7 @@
     "lint": "eslint --ext=js --ext=jsx .",
     "postinstall": "npm run build-ui",
     "coverage": "istanbul cover node_modules/mocha/bin/_mocha tests/*",
-    "test": "npm run lint && mocha --recursive tests/* && npm run coverage",
+    "test": "mocha --recursive tests/* && npm run lint && npm run coverage",
     "test-dev": "nodemon --ext js --watch ./ --exec 'mocha ./test'"
   },
   "dependencies": {
