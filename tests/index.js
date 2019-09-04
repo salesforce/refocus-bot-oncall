@@ -23,9 +23,7 @@ testPdData.body.log_entries =[{
   type: 'acknowledge_log_entry',
   created_at: '2019-09-04T09:16:41Z',
 }];
-const testTeamData={};
-testTeamData.service={};
-testTeamData.service.summary='TestTeam';
+const testTeamData='TestTeam';
 
 describe('index.js >', () => {
   describe(' createTTE tests', () => {

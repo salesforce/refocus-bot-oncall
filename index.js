@@ -114,11 +114,11 @@ function getServices(offset) {
 
 /**
  * Create TTE
- * @param {Array} data - service data
+ * @param {String} team - team paged
  * @param {Array} pdData - list of pagerduty data
  * @returns {Object} - A tte
  */
-function createTTE(data, pdData) {
+function createTTE(team, pdData) {
   const tte = {};
   tte.startTime = pdData.body.log_entries
     .filter((entry) => entry.type === 'notify_log_entry')[ZERO]
@@ -129,7 +129,7 @@ function createTTE(data, pdData) {
        entry.type === 'resolve_log_entry';
     });
   tte.endTime = endTime[ZERO] ? endTime[ZERO].created_at : null;
-  tte.team = data.service.summary;
+  tte.team = team;
   return tte ;
 }
 
@@ -147,7 +147,7 @@ function getIncidents(pdData) {
       if (obj.incident) {
         return pdIncidentDetail(obj.incident.id).then((result) => {
           if (result.body) {
-            tteList.push(createTTE(obj, result));
+            tteList.push(createTTE(obj.service.summary, result));
           }
         });
       }
