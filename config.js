@@ -12,6 +12,7 @@
  * Config file for different deployments - dev, staging, production
  */
 const DEFAULT_PORT = 5000;
+const pollingDelay = 20000;
 
 module.exports = {
   env: process.env.NODE_ENV || 'dev',
@@ -23,21 +24,25 @@ module.exports = {
       'http://localhost:3000',
     refocusRealtimeUrl: process.env.REFOCUS_REALTIME_URL_DEV,
     token: process.env.API_TOKEN_DEV,
+    pollingDelay: process.env.POLLING_DELAY_DEV || pollingDelay,
   },
   perf: {
     refocusUrl: process.env.REFOCUS_URL_PERF,
     refocusRealtimeUrl: process.env.REFOCUS_REALTIME_URL_PERF,
     token: process.env.API_TOKEN_PERF,
+    pollingDelay: process.env.POLLING_DELAY_PERF || pollingDelay,
   },
   sandbox: {
     refocusUrl: process.env.REFOCUS_URL_SANDBOX,
     refocusRealtimeUrl: process.env.REFOCUS_REALTIME_URL_SANDBOX,
     token: process.env.API_TOKEN_SANDBOX,
+    pollingDelay: process.env.POLLING_DELAY_SANDBOX || pollingDelay,
   },
   production: {
     refocusUrl: process.env.REFOCUS_URL_PROD,
     refocusRealtimeUrl: process.env.REFOCUS_REALTIME_URL_PROD,
     token: process.env.API_TOKEN_PROD,
+    pollingDelay: process.env.POLLING_DELAY_PROD || pollingDelay,
   },
 };
 

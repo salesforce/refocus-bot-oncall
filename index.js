@@ -18,16 +18,22 @@ const express = require('express');
 const app = express();
 const http = require('http');
 const path = require('path');
+const fs = require('fs');
 const request = require('superagent');
 const { env, pdToken, pdSender } = require('./config.js');
 const PORT = require('./config.js').port;
 const config = require('./config.js')[env];
 const { socketToken } = config;
+const POLLING_DELAY = config.pollingDelay;
 const bdk = require('@salesforce/refocus-bdk')(config);
 const packageJSON = require('./package.json');
+const serialize = require('serialize-javascript');
+const createTTE = require('../utils/tte.js').createTTE;
+const botName = packageJSON.name;
 const ZERO = 0;
 const SUCCESS_CODE = 201;
 const SERVICES_LIMIT = 100;
+let roomsToUpdate = [];
 
 // Installs / Updates the Bot
 bdk.installOrUpdateBot(packageJSON)
@@ -56,6 +62,29 @@ function pdServices(offset) {
   });
 }
 
+// https://api.pagerduty.com/incidents/{id}/log_entries
+
+
+/**
+ * Query PagerDuty for incident details
+ *
+ * @param {string} id - Incident to query
+ * @returns {Promise} - PagerDuty get service promise
+ */
+function pdIncidentDetail(id) {
+  return new Promise((resolve) => {
+    request
+      .get(`https://api.pagerduty.com/incidents/${id}/log_entries`)
+      .set('Authorization', `Token token=${pdToken}`)
+      .set('Accept', 'application/vnd.pagerduty+json;version=2')
+      .end((error, res) => {
+        resolve(res);
+      })
+      .catch((error) => bdk.log.error(
+        'pdIncidentDetail error', error));
+  });
+}
+
 /**
  * Get all services
  *
@@ -78,12 +107,34 @@ function getServices(offset) {
           bdk.log.warn('service missing name', service);
         }
       } else {
-        bdk.log.warn('broken service', service);
-        bdk.log.warn('full list of services', services);
+        bdk.log.warn('broken service');
       }
     });
 
     return serviceMap;
+  });
+}
+
+/**
+ * Get all incident timestamps
+ *
+ * @param {Array} pdData - list of pagerduty data
+ * @returns {Array} - All the ttes
+ */
+function getIncidents(pdData) {
+  const tteList = [];
+  return new Promise((resolve) => {
+    // eslint-disable-next-line consistent-return
+    Promise.all(pdData.map((obj) => {
+      if (obj.incident) {
+        return pdIncidentDetail(obj.incident.id).then((result) => {
+          if (result.body) {
+            tteList.push(createTTE(obj.service.summary, result));
+          }
+        });
+      }
+    })).then(() => resolve(tteList))
+      .catch((err) => bdk.log.error(err));
   });
 }
 
@@ -130,21 +181,41 @@ function pdTriggerEvent(group, message, room) {
 }
 
 /**
+ * Saves the current list of active rooms to a json file locally
+ * can be read on restart to make active room list persistent.
+ * @returns {Promise} - resolves when data is saved, or error occurs
+ */
+function updateLocalRoomData() {
+  return new Promise((resolve, reject) => {
+    fs.writeFile('activeRooms.json',
+      JSON.stringify(roomsToUpdate), 'utf8', (err) => {
+        if (err) {
+          reject(err);
+        }
+        resolve();
+      });
+  });
+}
+
+/**
  * When a refocus.events is dispatch it is handled here.
  *
  * @param {Event} event - The most recent event object
  */
 function handleEvents(event) {
   bdk.log.info('Event Activity', event.roomId);
-}
-
-/**
- * When a refocus.room.settings is dispatch it is handled here.
- *
- * @param {Room} room - Room object that was dispatched
- */
-function handleSettings(room) {
-  bdk.log.info('Room Settings Activity', room.name);
+  if (event.context.type === 'RoomState') {
+    // If a room is deactivated take it it out of 'roomsToUpdate'
+    if (!event.context.active && roomsToUpdate
+      .filter((room) => room.roomId === event.roomId).length > ZERO) {
+      roomsToUpdate = roomsToUpdate
+        .filter((room) => room.roomId !== event.roomId);
+    } else {
+      const newRoom = { roomId: event.roomId, botId: botName };
+      roomsToUpdate.push(newRoom);
+    }
+    updateLocalRoomData();
+  }
 }
 
 /**
@@ -155,6 +226,119 @@ function handleSettings(room) {
 function handleData(data) {
   bdk.log.info('Bot Data Activity',
     data.new ? data.new.name : data.name);
+
+  if (data.name === 'onCallIncidents') {
+    const roomId = data.roomId;
+    const newRoom = { roomId, botId: botName };
+    roomsToUpdate.push(newRoom);
+  }
+}
+
+/**
+ * Adds a room to the list of active rooms
+ * to be regularly updated with trust data
+ *
+ * @param {Object} roomInfo - information of room requesting data
+ */
+function updateActiveRoomsList(roomInfo) {
+  let isActive = false;
+  const alreadyInList = roomsToUpdate
+    .filter((room) => room.roomId === roomInfo.roomId).length > ZERO;
+  bdk.findRoom(roomInfo.roomId)
+    .then((res) => {
+      isActive = res.body.active;
+      if (isActive && !alreadyInList) {
+        const newRoom = { roomId: roomInfo.roomId, botId: botName };
+        roomsToUpdate.push(newRoom);
+        try {
+          updateLocalRoomData().catch((err) => {
+            throw err;
+          });
+        } catch (error) {
+          bdk.log.error(error);
+        }
+      }
+    });
+}
+
+/**
+ * Used to store all of the active rooms when the server starts.
+ */
+function storeActiveRoomsOnStart() {
+  bdk.getActiveRooms().then((res) => {
+    const activeRooms = res.body;
+    activeRooms.forEach((room) => {
+      if (room.bots.includes(botName)) {
+        const roomInfo = {
+          roomId: room.id,
+          botId: botName
+        };
+
+        updateActiveRoomsList(roomInfo);
+      }
+    });
+  });
+}
+
+/**
+ * Reads the local active rooms file if it exists and updates roomsToUpdate.
+ */
+function readActiveRoomsFile() {
+  fs.readFile('activeRooms.json', 'utf8', (err, data) => {
+    if (err) {
+      roomsToUpdate = [];
+    } else {
+      roomsToUpdate = JSON.parse(data);
+      const newRoomsToUpdate = [];
+      const rooms = [];
+      for (let i = 0; i < roomsToUpdate.length; i++) {
+        rooms.push(bdk.findRoom(roomsToUpdate[i].roomId));
+      }
+      Promise.all(rooms).then((roomData) => {
+        for (let i = 0; i < roomData.length; i++) {
+          if (roomData[i].body.active) {
+            newRoomsToUpdate.push(roomsToUpdate[i]);
+          }
+        }
+        roomsToUpdate = newRoomsToUpdate;
+        updateLocalRoomData();
+      });
+    }
+  });
+}
+
+/**
+ * Refreshes the saved incidents of the currently active rooms
+ */
+function updateActiveRoomIncidents() {
+  Promise.all(roomsToUpdate.map((obj) => {
+    if (obj.roomId && obj.botId) {
+      bdk.getBotData(obj.roomId, obj.botId, 'onCallIncidents')
+        .then((data) => {
+          if (data.body && data.body[ZERO]) {
+            const parsedData = JSON.parse(data.body[ZERO].value);
+            const pdData = parsedData.incidents;
+            getIncidents(pdData).then((tteList) => {
+              bdk.upsertBotData(
+                obj.roomId,
+                obj.botId,
+                'onCallTTe',
+                serialize(tteList)
+              );
+            });
+          }
+        });
+    }
+  }));
+}
+
+/**
+ * When a refocus.room.settings is dispatch it is handled here.
+ *
+ * @param {Room} room - Room object that was dispatched
+ */
+function handleSettings(room) {
+  bdk.log.info('Room Settings Activity', room.name);
 }
 
 /**
@@ -212,6 +396,8 @@ function handleActions(action) {
             }
 
             if (res.body.incident) {
+              bdk.log.info('Successfully Paged:', res.body.incident.service);
+              bdk.log.info('Incident Id:', res.body.incident.id);
               incidentList.push({
                 'incident': {
                   'id': res.body.incident.id,
@@ -263,6 +449,14 @@ app.use(express.static('web/dist'));
 app.get('/*', (req, res) => {
   res.sendFile(path.join(__dirname, '/web/dist/index.html'));
 });
+
+// Getting list of active rooms from last session
+readActiveRoomsFile();
+
+// When the bot starts, store all of the active rooms in file
+storeActiveRoomsOnStart();
+setInterval(updateActiveRoomIncidents, POLLING_DELAY);
+updateActiveRoomIncidents();
 
 http.Server(app).listen(PORT, () => {
   bdk.log.info('listening on: ', PORT);
