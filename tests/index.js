@@ -13,24 +13,39 @@
 const expect = require('chai').expect;
 const createTTE = require('../index.js').createTTE;
 
+const testTeamData='TestTeam';
 const testPdData ={};
 testPdData.body={};
-testPdData.body.log_entries =[{
-  type: 'notify_log_entry',
-  created_at: '2019-09-04T09:16:41Z',
-},
-{
-  type: 'acknowledge_log_entry',
-  created_at: '2019-09-04T09:16:41Z',
-}];
-const testTeamData='TestTeam';
 
 describe('index.js >', () => {
   describe(' createTTE tests', () => {
-    it('should return a single tte', () => {
+    it('should return a single tte acknowledge_log_entry', () => {
       const expected ={ startTime: '2019-09-04T09:16:41Z',
         endTime: '2019-09-04T09:16:41Z',
         team: 'TestTeam' };
+      testPdData.body.log_entries =[{
+        type: 'notify_log_entry',
+        created_at: '2019-09-04T09:16:41Z',
+      },
+      {
+        type: 'acknowledge_log_entry',
+        created_at: '2019-09-04T09:16:41Z',
+      }];
+      const tte = createTTE(testTeamData, testPdData);
+      expect(tte).to.deep.equal(expected);
+    });
+    it('should return a single tte resolve_log_entry', () => {
+      const expected ={ startTime: '2019-09-04T09:16:41Z',
+        endTime: '2019-09-04T09:16:41Z',
+        team: 'TestTeam' };
+      testPdData.body.log_entries =[{
+        type: 'notify_log_entry',
+        created_at: '2019-09-04T09:16:41Z',
+      },
+      {
+        type: 'resolve_log_entry',
+        created_at: '2019-09-04T09:16:41Z',
+      }];
       const tte = createTTE(testTeamData, testPdData);
       expect(tte).to.deep.equal(expected);
     });
