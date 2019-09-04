@@ -31,7 +31,7 @@ function createTTE(team, pdData) {
     });
   tte.endTime = endTime[ZERO] ? endTime[ZERO].created_at : null;
   tte.team = team;
-  return tte ;
+  return tte;
 }
 
 module.exports = {
