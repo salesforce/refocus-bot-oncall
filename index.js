@@ -57,6 +57,7 @@ function pdServices(offset) {
       .set('Authorization', `Token token=${pdToken}`)
       .set('Accept', 'application/vnd.pagerduty+json;version=2')
       .end((error, res) => {
+        if (error) bdk.log.error('pdServices error', error);
         resolve(res);
       }).catch((error) => bdk.log.error('pdServices error', error));
   });
