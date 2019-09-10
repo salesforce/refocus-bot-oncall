@@ -58,6 +58,7 @@ function pdServices(offset) {
       .set('Accept', 'application/vnd.pagerduty+json;version=2')
       .end((error, res) => {
         if (error) bdk.log.error('pdServices error', error);
+        console.log(res.body)
         resolve(res);
       }).catch((error) => bdk.log.error('pdServices error', error));
   });
