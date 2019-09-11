@@ -33,6 +33,7 @@ const botName = packageJSON.name;
 const ZERO = 0;
 const SUCCESS_CODE = 201;
 const SERVICES_LIMIT = 100;
+const tteRoomUpdateDelay = 500;
 let roomsToUpdate = [];
 
 // Installs / Updates the Bot
@@ -329,7 +330,7 @@ function updateActiveRoomIncidents() {
               });
             }
           });
-      }, 500);
+      }, tteRoomUpdateDelay);
     }
   }));
 }
