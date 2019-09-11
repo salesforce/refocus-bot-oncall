@@ -19,6 +19,7 @@ module.exports = {
   port: process.env.PORT || DEFAULT_PORT,
   pdToken: process.env.PD_TOKEN,
   pdSender: process.env.PD_SENDER,
+  tteToggle: process.env.TTE_TOGGLE || false,
   dev: {
     refocusUrl: process.env.REFOCUS_URL_DEV ||
       'http://localhost:3000',

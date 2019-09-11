@@ -20,7 +20,7 @@ const http = require('http');
 const path = require('path');
 const fs = require('fs');
 const request = require('superagent');
-const { env, pdToken, pdSender } = require('./config.js');
+const { env, pdToken, pdSender, tteToggle } = require('./config.js');
 const PORT = require('./config.js').port;
 const config = require('./config.js')[env];
 const { socketToken } = config;
@@ -33,6 +33,7 @@ const botName = packageJSON.name;
 const ZERO = 0;
 const SUCCESS_CODE = 201;
 const SERVICES_LIMIT = 100;
+const tteRoomUpdateDelay = 500;
 let roomsToUpdate = [];
 
 // Installs / Updates the Bot
@@ -313,21 +314,23 @@ function readActiveRoomsFile() {
 function updateActiveRoomIncidents() {
   Promise.all(roomsToUpdate.map((obj) => {
     if (obj.roomId && obj.botId) {
-      bdk.getBotData(obj.roomId, obj.botId, 'onCallIncidents')
-        .then((data) => {
-          if (data.body && data.body[ZERO]) {
-            const parsedData = JSON.parse(data.body[ZERO].value);
-            const pdData = parsedData.incidents;
-            getIncidents(pdData).then((tteList) => {
-              bdk.upsertBotData(
-                obj.roomId,
-                obj.botId,
-                'onCallTTe',
-                serialize(tteList)
-              );
-            });
-          }
-        });
+      setTimeout(() => {
+        bdk.getBotData(obj.roomId, obj.botId, 'onCallIncidents')
+          .then((data) => {
+            if (data.body && data.body[ZERO]) {
+              const parsedData = JSON.parse(data.body[ZERO].value);
+              const pdData = parsedData.incidents;
+              getIncidents(pdData).then((tteList) => {
+                bdk.upsertBotData(
+                  obj.roomId,
+                  obj.botId,
+                  'onCallTTe',
+                  serialize(tteList)
+                );
+              });
+            }
+          });
+      }, tteRoomUpdateDelay);
     }
   }));
 }
@@ -455,8 +458,10 @@ readActiveRoomsFile();
 
 // When the bot starts, store all of the active rooms in file
 storeActiveRoomsOnStart();
-setInterval(updateActiveRoomIncidents, POLLING_DELAY);
-updateActiveRoomIncidents();
+if (tteToggle) {
+  setInterval(updateActiveRoomIncidents, POLLING_DELAY);
+  updateActiveRoomIncidents();
+}
 
 http.Server(app).listen(PORT, () => {
   bdk.log.info('listening on: ', PORT);
