@@ -56,11 +56,16 @@ function pdServices(offset) {
       .get('https://api.pagerduty.com/services?limit=100&offset=' + offset)
       .set('Authorization', `Token token=${pdToken}`)
       .set('Accept', 'application/vnd.pagerduty+json;version=2')
-      .end((error, res) => {
+      .then((res, error) => {
         if (error) bdk.log.error('pdServices error', error);
-        console.log(res.body)
+
+        console.log("********inside pdServices ************")
+
         resolve(res);
-      }).catch((error) => bdk.log.error('pdServices error', error));
+      }).catch((error) => {
+        console.log("********inside pdServices Catch ************")
+        bdk.log.error('pdServices error', error)
+      });
   });
 }
 
