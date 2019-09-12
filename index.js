@@ -57,8 +57,10 @@ function pdServices(offset) {
       .get('https://api.pagerduty.com/services?limit=100&offset=' + offset)
       .set('Authorization', `Token token=${pdToken}`)
       .set('Accept', 'application/vnd.pagerduty+json;version=2')
-      .end((error, res) => {
+      .then((res) => {
         resolve(res);
+      }).catch((error) => {
+        bdk.log.error('pdServices error', error);
       });
   });
 }
@@ -78,7 +80,7 @@ function pdIncidentDetail(id) {
       .get(`https://api.pagerduty.com/incidents/${id}/log_entries`)
       .set('Authorization', `Token token=${pdToken}`)
       .set('Accept', 'application/vnd.pagerduty+json;version=2')
-      .end((error, res) => {
+      .then((res) => {
         resolve(res);
       })
       .catch((error) => bdk.log.error(
@@ -175,9 +177,10 @@ function pdTriggerEvent(group, message, room) {
       .set('Authorization', `Token token=${pdToken}`)
       .set('Accept', 'application/vnd.pagerduty+json;version=2')
       .set('From', pdSender)
-      .end((error, res) => {
+      .then((res) => {
         resolve(res);
-      });
+      }).catch((error) => bdk.log.error(
+        'pdTriggerEvent error', error));
   });
 }
 
