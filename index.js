@@ -176,9 +176,10 @@ function pdTriggerEvent(group, message, room) {
       .set('Authorization', `Token token=${pdToken}`)
       .set('Accept', 'application/vnd.pagerduty+json;version=2')
       .set('From', pdSender)
-      .end((error, res) => {
+      .then((res) => {
         resolve(res);
-      });
+      }).catch((error) => bdk.log.error(
+        'pdTriggerEvent error', error));
   });
 }
 
