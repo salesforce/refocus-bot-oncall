@@ -131,7 +131,8 @@ function getIncidents(pdData) {
       if (obj.incident) {
         return pdIncidentDetail(obj.incident.id).then((result) => {
           if (result.body) {
-            tteList.push(createTTE(obj.service.summary, result));
+            tteList.push(createTTE(obj.incident.id,
+              obj.service.summary, result));
           }
         });
       }

@@ -15,11 +15,12 @@ const ZERO = 0;
 
 /**
  * Create TTE
+ * @param {String} id - pager duty id
  * @param {String} team - team paged
  * @param {Array} pdData - list of pagerduty data
  * @returns {Object} - A tte
  */
-function createTTE(team, pdData) {
+function createTTE(id, team, pdData) {
   const tte = {};
   tte.startTime = pdData.body.log_entries
     .filter((entry) => entry.type === 'notify_log_entry')[ZERO]
@@ -31,6 +32,7 @@ function createTTE(team, pdData) {
     });
   tte.endTime = endTime[ZERO] ? endTime[ZERO].created_at : null;
   tte.team = team;
+  tte.id = id;
   return tte;
 }
 
