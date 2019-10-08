@@ -327,8 +327,8 @@ function updateActiveRoomIncidents() {
                 bdk.upsertBotData(
                   obj.roomId,
                   obj.botId,
-                  'onCallTTe',
-                  serialize(tteList)
+                  'onCallTTx',
+                  { tte: tteList }
                 );
               });
             }
