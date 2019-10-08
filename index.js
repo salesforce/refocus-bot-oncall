@@ -27,7 +27,6 @@ const { socketToken } = config;
 const POLLING_DELAY = config.pollingDelay;
 const bdk = require('@salesforce/refocus-bdk')(config);
 const packageJSON = require('./package.json');
-const serialize = require('serialize-javascript');
 const createTTE = require('./utils/tte.js').createTTE;
 const botName = packageJSON.name;
 const ZERO = 0;
@@ -327,8 +326,8 @@ function updateActiveRoomIncidents() {
                 bdk.upsertBotData(
                   obj.roomId,
                   obj.botId,
-                  'onCallTTe',
-                  serialize(tteList)
+                  'onCallTTx',
+                  { tte: tteList }
                 );
               });
             }
