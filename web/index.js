@@ -213,7 +213,7 @@ function init() {
       if (!_services || !_template || !_variables) {
         bdk.findRoom(roomId)
           .then((res) => {
-            if (!_services) {
+            if (!_services || _.isEmpty(_services)) {
               if (res.body.settings) {
                 if (res.body.settings.onCallBotServices) {
                   currentServices = res.body.settings.onCallBotServices;
@@ -226,6 +226,7 @@ function init() {
                 'onCallBotServices',
                 serialize(currentServices)
               );
+              getServices();
             }
 
             if (!_template) {
@@ -269,8 +270,6 @@ function init() {
       currentMessage = unparsedTemp.toString();
       renderUI(currentServices, currentMessage, null, incidents);
     });
-
-  getServices();
 }
 
 document.getElementById(botName)
