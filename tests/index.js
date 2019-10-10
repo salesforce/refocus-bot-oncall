@@ -22,8 +22,8 @@ describe('index.js >', () => {
     it('should return a single tte acknowledge_log_entry', () => {
       const expected = {
         id: 'aa',
-        startTime: '2019-09-04T09:16:41Z',
-        endTime: '2019-09-04T09:16:41Z',
+        start: '2019-09-04T09:16:41Z',
+        end: '2019-09-04T09:16:41Z',
         team: 'TestTeam'
       };
       testPdData.body.log_entries = [
@@ -41,8 +41,8 @@ describe('index.js >', () => {
     it('should return a single tte resolve_log_entry', () => {
       const expected = {
         id: 'ab',
-        startTime: '2019-09-04T09:16:41Z',
-        endTime: '2019-09-04T09:16:41Z',
+        start: '2019-09-04T09:16:41Z',
+        end: '2019-09-04T09:16:41Z',
         team: 'TestTeam'
       };
       testPdData.body.log_entries = [
