@@ -87,3 +87,4 @@ Follows [semantic versioning](https://docs.npmjs.com/getting-started/semantic-ve
 * 1.1.1 Fixed erroring from using .end
 * 1.1.2 Adding value as object
 * 1.1.3 Make single call for services rather than every page load
+* 1.1.4 Update TTe attributes for TTx metrics
