@@ -228,10 +228,8 @@ function init() {
             }
 
             if (!_template) {
-              if (res.body.settings) {
-                if (res.body.settings.onCallBotTemplate) {
-                  currentTemplate = res.body.settings.onCallBotTemplate;
-                }
+              if (res.body.settings && res.body.settings.onCallBotTemplate) {
+                currentTemplate = res.body.settings.onCallBotTemplate;
               }
 
               bdk.createBotData(
@@ -243,10 +241,8 @@ function init() {
             }
 
             if (!_variables) {
-              if (res.body.settings) {
-                if (res.body.settings.onCallBotData) {
-                  currentVariables = res.body.settings.onCallBotData;
-                }
+              if (res.body.settings && res.body.settings.onCallBotData) {
+                currentVariables = res.body.settings.onCallBotData;
               }
 
               bdk.createBotData(
