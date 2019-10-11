@@ -213,11 +213,9 @@ function init() {
       if (!_services || !_template || !_variables) {
         bdk.findRoom(roomId)
           .then((res) => {
-            if (!_services) {
-              if (res.body.settings) {
-                if (res.body.settings.onCallBotServices) {
-                  currentServices = res.body.settings.onCallBotServices;
-                }
+            if (!_services || _.isEmpty(_services)) {
+              if (res.body.settings && res.body.settings.onCallBotServices) {
+                currentServices = res.body.settings.onCallBotServices;
               }
 
               bdk.createBotData(
@@ -226,13 +224,12 @@ function init() {
                 'onCallBotServices',
                 serialize(currentServices)
               );
+              getServices();
             }
 
             if (!_template) {
-              if (res.body.settings) {
-                if (res.body.settings.onCallBotTemplate) {
-                  currentTemplate = res.body.settings.onCallBotTemplate;
-                }
+              if (res.body.settings && res.body.settings.onCallBotTemplate) {
+                currentTemplate = res.body.settings.onCallBotTemplate;
               }
 
               bdk.createBotData(
@@ -244,10 +241,8 @@ function init() {
             }
 
             if (!_variables) {
-              if (res.body.settings) {
-                if (res.body.settings.onCallBotData) {
-                  currentVariables = res.body.settings.onCallBotData;
-                }
+              if (res.body.settings && res.body.settings.onCallBotData) {
+                currentVariables = res.body.settings.onCallBotData;
               }
 
               bdk.createBotData(
@@ -269,8 +264,6 @@ function init() {
       currentMessage = unparsedTemp.toString();
       renderUI(currentServices, currentMessage, null, incidents);
     });
-
-  getServices();
 }
 
 document.getElementById(botName)
