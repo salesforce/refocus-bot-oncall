@@ -214,10 +214,8 @@ function init() {
         bdk.findRoom(roomId)
           .then((res) => {
             if (!_services || _.isEmpty(_services)) {
-              if (res.body.settings) {
-                if (res.body.settings.onCallBotServices) {
-                  currentServices = res.body.settings.onCallBotServices;
-                }
+              if (res.body.settings && res.body.settings.onCallBotServices) {
+                currentServices = res.body.settings.onCallBotServices;
               }
 
               bdk.createBotData(
