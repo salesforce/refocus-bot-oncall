@@ -19,7 +19,7 @@ testPdData.body = {};
 
 describe('index.js >', () => {
   describe(' createTTE tests', () => {
-    it('should return a single tte with null as end time', () => {
+    it('should return end time null with no resolve_log_entry', () => {
       const expected = {
         id: 'aa',
         start: '2019-09-04T09:16:41Z',
