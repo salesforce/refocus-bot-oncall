@@ -27,8 +27,7 @@ function createTTE(id, team, pdData) {
     .created_at;
   const endTime = pdData.body.log_entries
     .filter((entry) => {
-      return entry.type === 'acknowledge_log_entry' ||
-       entry.type === 'resolve_log_entry';
+      return entry.type === 'resolve_log_entry';
     });
   tte.end = endTime[ZERO] ? endTime[ZERO].created_at : null;
   tte.team = team;

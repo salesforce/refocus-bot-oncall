@@ -4,3 +4,4 @@ package-lock.json
 web/dist/*
 !web/dist/public/*
 node_modules
+coverage/*

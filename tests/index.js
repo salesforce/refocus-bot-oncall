@@ -19,36 +19,33 @@ testPdData.body = {};
 
 describe('index.js >', () => {
   describe(' createTTE tests', () => {
-    it('should return a single tte acknowledge_log_entry', () => {
+    it('should return end time null with no resolve_log_entry', () => {
       const expected = {
         id: 'aa',
         start: '2019-09-04T09:16:41Z',
-        end: '2019-09-04T09:16:41Z',
+        end: null,
         team: 'TestTeam'
       };
       testPdData.body.log_entries = [
         {
           type: 'notify_log_entry',
           created_at: '2019-09-04T09:16:41Z',
-        },
-        {
-          type: 'acknowledge_log_entry',
-          created_at: '2019-09-04T09:16:41Z',
-        }];
+        }
+      ];
       const tte = createTTE('aa', testTeamData, testPdData);
       expect(tte).to.deep.equal(expected);
     });
     it('should return a single tte resolve_log_entry', () => {
       const expected = {
         id: 'ab',
-        start: '2019-09-04T09:16:41Z',
+        start: '2019-09-04T09:15:41Z',
         end: '2019-09-04T09:16:41Z',
         team: 'TestTeam'
       };
       testPdData.body.log_entries = [
         {
           type: 'notify_log_entry',
-          created_at: '2019-09-04T09:16:41Z',
+          created_at: '2019-09-04T09:15:41Z',
         },
         {
           type: 'resolve_log_entry',
