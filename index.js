@@ -50,17 +50,25 @@ const serviceMap = {};
  * @param {Integer} offset - Amount of services to offset
  * @returns {Promise} - PagerDuty get service promise
  */
-// eslint-disable-next-line no-unused-vars
 function pdServices(offset) {
   return new Promise((resolve) => {
     request
-      .get('https://api.pagerduty.com/services?limit=100')
+      .get('https://api.pagerduty.com/services?limit=100&offset=' + offset)
+      .timeout({
+        response: 5000, // Wait 5 seconds for the server to start sending,
+        deadline: 30000, // but allow 30 seconds for the file to finish loading.
+      })
       .set('Authorization', `Token token=${pdToken}`)
       .set('Accept', 'application/vnd.pagerduty+json;version=2')
       .then((res) => {
         resolve(res);
       }).catch((error) => {
         bdk.log.error('pdServices error', error);
+        resolve({
+          body: {
+            more: true
+          }
+        });
       });
   });
 }
