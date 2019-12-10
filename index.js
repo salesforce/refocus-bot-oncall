@@ -50,10 +50,11 @@ const serviceMap = {};
  * @param {Integer} offset - Amount of services to offset
  * @returns {Promise} - PagerDuty get service promise
  */
+// eslint-disable-next-line no-unused-vars
 function pdServices(offset) {
   return new Promise((resolve) => {
     request
-      .get('https://api.pagerduty.com/services?limit=100&offset=' + offset)
+      .get('https://api.pagerduty.com/services?limit=100')
       .set('Authorization', `Token token=${pdToken}`)
       .set('Accept', 'application/vnd.pagerduty+json;version=2')
       .then((res) => {
