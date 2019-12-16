@@ -135,7 +135,7 @@
     "max-len": [2, 80, 2],
     "max-nested-callbacks": [2, 6],
     "max-params": [2, 4],
-    "max-statements": [2, 20],
+    "max-statements": [2, 28],
     "new-cap": 0,
     "new-parens": 2,
     "no-array-constructor": 2,

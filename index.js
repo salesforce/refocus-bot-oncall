@@ -15,6 +15,7 @@
 
 require('dotenv').config();
 const express = require('express');
+const serialize = require('serialize-javascript');
 const app = express();
 const http = require('http');
 const path = require('path');
@@ -23,11 +24,13 @@ const request = require('superagent');
 const { env, pdToken, pdSender, tteToggle } = require('./config.js');
 const PORT = require('./config.js').port;
 const config = require('./config.js')[env];
-const { socketToken } = config;
+const { socketToken, recommendationUrl } = config;
 const POLLING_DELAY = config.pollingDelay;
 const bdk = require('@salesforce/refocus-bdk')(config);
 const packageJSON = require('./package.json');
 const createTTE = require('./utils/tte.js').createTTE;
+const getRecommendations = require('./utils/recommendations.js')
+  .getRecommendations;
 const botName = packageJSON.name;
 const ZERO = 0;
 const SUCCESS_CODE = 201;
@@ -372,6 +375,23 @@ function handleActions(action) {
       getServices(ZERO).then((result) => {
         bdk.respondBotActionNoLog(id, result);
       });
+    }
+  }
+
+  if (action.name === 'getRecommendations') {
+    if (!action.response && action.isPending) {
+      const id = action.id;
+      const params = action.parameters;
+      const caseData = params.filter((param) =>
+        param.name === 'caseData')[ZERO].value;
+      if (recommendationUrl) {
+        const parsedData = JSON.parse(caseData);
+        getRecommendations(recommendationUrl, parsedData).then((result) => {
+          bdk.respondBotActionNoLog(id, { 'recommendations': result });
+        });
+      } else {
+        bdk.respondBotActionNoLog(id, { error: 'recommendationUrl not set' });
+      }
     }
   }
 

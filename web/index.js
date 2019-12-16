@@ -28,6 +28,8 @@ let currentVariables = {};
 let currentTemplate = '';
 let currentMessage = '';
 let _incidentLogs = {};
+let currentRecommendations = {};
+
 
 const defaultVariables = {};
 const defaultTemplate = 'Join incident room: {{imcLink}}';
@@ -51,6 +53,7 @@ function renderUI(services, message, response, incidentList) {
       message={message}
       response={response}
       incidents={incidentList}
+      recommendations={currentRecommendations}
     />,
     document.getElementById(botName)
   );
@@ -141,6 +144,41 @@ function handleActions(action) {
             [];
           renderUI(currentServices, currentMessage, null, incidents);
         });
+    } else if (action.detail.name === 'getRecommendations') {
+      bdk.getBotData(roomId, botName)
+        .then((data) => {
+          const recommendedServices = [];
+          const _recommendations = data.body
+            .filter((bd) => bd.name === 'onCallRecommendations')[ZERO];
+          action.detail.response.recommendations
+            .map((recommendation) => {
+              if (currentServices[recommendation]) {
+                const temp = {};
+                temp.label = recommendation;
+                temp.value = currentServices[recommendation];
+                recommendedServices.push(temp);
+              }
+            });
+
+          if (!_.isEqual(currentRecommendations, recommendedServices)) {
+            currentRecommendations = recommendedServices;
+            if (_recommendations) {
+              bdk.changeBotData(_recommendations.id,
+                serialize(currentRecommendations));
+            } else {
+              bdk.createBotData(
+                roomId,
+                botName,
+                'onCallRecommendations',
+                serialize(currentRecommendations)
+              );
+            }
+          }
+          const incidents = _incidentLogs ?
+            JSON.parse(_incidentLogs.value).incidents :
+            [];
+          renderUI(currentServices, currentMessage, null, incidents);
+        });
     } else {
       const newIncidents = _incidentLogs ?
         JSON.parse(_incidentLogs.value) :
@@ -192,6 +230,29 @@ function getServices() {
 }
 
 /**
+ * Create botAction to get all the services
+ *
+ * @returns {Promise} - Bot Action Promise
+ */
+function getRecommendations() {
+  console.log("currentVariables",currentVariables)
+  const serviceReq = {
+    'name': 'getRecommendations',
+    'botId': botName,
+    roomId,
+    'isPending': true,
+    'parameters': [
+      {
+        'name': 'caseData',
+        'value': serialize(currentVariables),
+      },
+    ]
+  };
+
+  return bdk.createBotAction(serviceReq);
+}
+
+/**
  * The actions to take before load.
  */
 function init() {
@@ -205,12 +266,16 @@ function init() {
         .filter((bd) => bd.name === 'onCallBotData')[ZERO];
       _incidentLogs = data.body
         .filter((bd) => bd.name === 'onCallIncidents')[ZERO];
+      const _recommendations = data.body
+        .filter((bd) => bd.name === 'onCallRecommendations')[ZERO];
       currentServices = _services ? JSON.parse(_services.value) : {};
       currentVariables = _variables ?
         JSON.parse(_variables.value) : defaultVariables;
       currentTemplate = _template ? _template.value : defaultTemplate;
+      currentRecommendations = _recommendations ?
+        JSON.parse(_recommendations.value) : {};
 
-      if (!_services || !_template || !_variables) {
+      if (!_services || !_template || !_variables || !_recommendations) {
         bdk.findRoom(roomId)
           .then((res) => {
             if (!_services || _.isEmpty(_services)) {
@@ -252,6 +317,15 @@ function init() {
                 serialize(currentVariables)
               );
             }
+
+            if (!_recommendations) {
+              bdk.createBotData(
+                roomId,
+                botName,
+                'onCallRecommendations',
+                serialize({})
+              );
+            }
           });
       }
 
@@ -262,6 +336,7 @@ function init() {
       const selTemplate = handlebars.compile(currentTemplate);
       const unparsedTemp = selTemplate(currentVariables);
       currentMessage = unparsedTemp.toString();
+      getRecommendations();
       renderUI(currentServices, currentMessage, null, incidents);
     });
 }
