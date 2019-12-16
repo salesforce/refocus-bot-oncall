@@ -15,7 +15,6 @@
 
 require('dotenv').config();
 const express = require('express');
-const serialize = require('serialize-javascript');
 const app = express();
 const http = require('http');
 const path = require('path');

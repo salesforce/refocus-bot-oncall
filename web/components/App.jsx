@@ -129,7 +129,8 @@ class App extends React.Component{
   }
 
   render(){
-    const { services, value, incidents, selectOpen, recommendations } = this.state;
+    const { services, value, incidents, selectOpen,
+      recommendations } = this.state;
     const options = [];
     Object.keys(services).forEach((key) => {
       const service = {};

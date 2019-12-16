@@ -78,6 +78,28 @@ function handleSettings(room) {
 }
 
 /**
+ * Create botAction to get Recommendations
+ *
+ * @returns {Promise} - Bot Action Promise
+ */
+function getRecommendations() {
+  const serviceReq = {
+    'name': 'getRecommendations',
+    'botId': botName,
+    roomId,
+    'isPending': true,
+    'parameters': [
+      {
+        'name': 'caseData',
+        'value': serialize(currentVariables),
+      },
+    ]
+  };
+
+  return bdk.createBotAction(serviceReq);
+}
+
+/**
  * When a refocus.bot.data is dispatch it is handled here.
  *
  * @param {BotData} data - Bot Data object that was dispatched
@@ -97,6 +119,7 @@ function handleData(data) {
     currentVariables = JSON.parse(data.detail.value);
     const selTemplate = handlebars.compile(currentTemplate);
     const unparsedTemp = selTemplate(currentVariables);
+    getRecommendations();
     currentMessage = unparsedTemp.toString();
   }
 
@@ -230,29 +253,6 @@ function getServices() {
 }
 
 /**
- * Create botAction to get all the services
- *
- * @returns {Promise} - Bot Action Promise
- */
-function getRecommendations() {
-  console.log("currentVariables",currentVariables)
-  const serviceReq = {
-    'name': 'getRecommendations',
-    'botId': botName,
-    roomId,
-    'isPending': true,
-    'parameters': [
-      {
-        'name': 'caseData',
-        'value': serialize(currentVariables),
-      },
-    ]
-  };
-
-  return bdk.createBotAction(serviceReq);
-}
-
-/**
  * The actions to take before load.
  */
 function init() {
@@ -336,7 +336,9 @@ function init() {
       const selTemplate = handlebars.compile(currentTemplate);
       const unparsedTemp = selTemplate(currentVariables);
       currentMessage = unparsedTemp.toString();
-      getRecommendations();
+      if (currentVariables !== {}) {
+        getRecommendations();
+      }
       renderUI(currentServices, currentMessage, null, incidents);
     });
 }
