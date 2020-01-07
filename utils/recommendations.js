@@ -14,7 +14,7 @@ function getRecommendations(url, data) {
   };
   return new Promise((resolve, reject) => {
     request
-      .post(url+'/oncall')
+      .post(url + '/oncall')
       .send(query)
       .set('Content-Type', 'application/json;charset=UTF-8')
       .then((res) => {
