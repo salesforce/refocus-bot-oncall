@@ -27,6 +27,7 @@ class App extends React.Component{
       roomId: props.roomId,
       response: props.response,
       services: props.services,
+      recommendations: props.recommendations,
       value: [],
       rtl: false,
       message: props.message,
@@ -128,7 +129,8 @@ class App extends React.Component{
   }
 
   render(){
-    const { services, value, incidents, selectOpen } = this.state;
+    const { services, value, incidents, selectOpen,
+      recommendations } = this.state;
     const options = [];
     Object.keys(services).forEach((key) => {
       const service = {};
@@ -187,6 +189,35 @@ class App extends React.Component{
                 </button>
               </div>
             </div>
+            <div className={selectOpen ? `${gridCSS} select-open` : gridCSS}>
+              <div className="slds-form-element">
+              </div>
+              {config.recommendationUrl &&
+                <div className="slds-p-horizontal_small slds-size_1-of-1">
+                  <div className={titleCSS}>
+                    Recommendations
+                  </div>
+                  <div className="slds-size_1-of-1 slds-text-align_center
+                   slds-docked-composer__header">
+                    {recommendations.map((service) => {
+                      return <li key={service.label}
+                        className="slds-show--inline">
+                        <button
+                          className="slds-button slds-button_brand
+                           slds-m-around_x-small"
+                          onClick={() => {
+                            value.push(service.value);
+                            this.handleSelectChange(value.toString());
+                          }}>
+                          {service.label}
+                        </button>
+                      </li>;
+                    })
+                    }
+                  </div>
+                </div>
+              }
+            </div>
             <div className="slds-p-horizontal_small">
               <div className={titleCSS}>
                 Incident Log
@@ -243,6 +274,7 @@ App.propTypes={
   response: PropTypes.object,
   services: PropTypes.object,
   message: PropTypes.string,
+  recommendations: PropTypes.array,
   incidents: PropTypes.array
 };
 

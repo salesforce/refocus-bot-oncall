@@ -36,7 +36,7 @@
     "block-scoped-var": 2,
     "complexity": [2, 20],
     "consistent-return": 2,
-    "curly": 2,
+    "curly": 0,
     "default-case": 2,
     "dot-location": [2, "property"],
     "dot-notation": 2,

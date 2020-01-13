@@ -28,6 +28,8 @@ let currentVariables = {};
 let currentTemplate = '';
 let currentMessage = '';
 let _incidentLogs = {};
+let currentRecommendations = {};
+
 
 const defaultVariables = {};
 const defaultTemplate = 'Join incident room: {{imcLink}}';
@@ -35,6 +37,8 @@ const defaultTemplate = 'Join incident room: {{imcLink}}';
 const ZERO = 0;
 
 const roomId = bdk.getRoomId();
+
+/* eslint-disable func-style */
 
 /**
  * global {Integer} roomId - Room Id that is provided from refocus
@@ -51,6 +55,7 @@ function renderUI(services, message, response, incidentList) {
       message={message}
       response={response}
       incidents={incidentList}
+      recommendations={currentRecommendations}
     />,
     document.getElementById(botName)
   );
@@ -75,101 +80,181 @@ function handleSettings(room) {
 }
 
 /**
+ * Create botAction to get Recommendations
+ *
+ * @returns {Promise} - Bot Action Promise
+ */
+function createActionToGetRecommendations() {
+  const serviceReq = {
+    'name': 'getRecommendations',
+    'botId': botName,
+    roomId,
+    'isPending': true,
+    'parameters': [
+      {
+        'name': 'caseData',
+        'value': serialize(currentVariables),
+      },
+    ]
+  };
+
+  return bdk.createBotAction(serviceReq);
+}
+
+const handleDataActionDispatcher = {
+  'onCallBotServices': (data) => {
+    currentServices = JSON.parse(data.detail.value);
+  },
+  'onCallIncidents': (data) => {
+    _incidentLogs = JSON.parse(data.detail.value);
+  },
+  'onCallBotData': (data) => {
+    currentVariables = JSON.parse(data.detail.value);
+    const selTemplate = handlebars.compile(currentTemplate);
+    createActionToGetRecommendations();
+    currentMessage = selTemplate(currentVariables).toString();
+  },
+  'onCallBotTemplate': (data) => {
+    currentTemplate = JSON.parse(data.detail.value);
+    const selTemplate = handlebars.compile(currentTemplate);
+    currentMessage = selTemplate(currentVariables).toString();
+  }
+};
+
+/**
  * When a refocus.bot.data is dispatch it is handled here.
  *
- * @param {BotData} data - Bot Data object that was dispatched
+ * @param {Object} data - Bot Data object that was dispatched
  */
 function handleData(data) {
   bdk.log.debug('Bot Data Event Received: ', data.detail);
 
-  if (data.detail.name === 'onCallBotServices') {
-    currentServices = JSON.parse(data.detail.value);
+  const handleDataAction = handleDataActionDispatcher[data.detail.name];
+  if (handleDataAction) {
+    handleDataAction(data);
   }
 
-  if (data.detail.name === 'onCallIncidents') {
-    _incidentLogs = JSON.parse(data.detail.value);
-  }
-
-  if (data.detail.name === 'onCallBotData') {
-    currentVariables = JSON.parse(data.detail.value);
-    const selTemplate = handlebars.compile(currentTemplate);
-    const unparsedTemp = selTemplate(currentVariables);
-    currentMessage = unparsedTemp.toString();
-  }
-
-  if (data.detail.name === 'onCallBotTemplate') {
-    currentTemplate = JSON.parse(data.detail.value);
-    const selTemplate = handlebars.compile(currentTemplate);
-    const unparsedTemp = selTemplate(currentVariables);
-    currentMessage = unparsedTemp.toString();
-  }
-
-  const incidents = _incidentLogs ?
-    _incidentLogs.incidents : [];
-
+  const incidents = _incidentLogs ? _incidentLogs.incidents : [];
   renderUI(currentServices, currentMessage, null, incidents);
 }
 
 /**
+ * @param {Object} botAction - Bot Action object that was dispatched
+ */
+const getServicesAction = (botAction) => {
+  bdk.getBotData(roomId, botName)
+    .then((data) => {
+      const _services = data.body
+        .filter((bd) => bd.name === 'onCallBotServices')[ZERO];
+      if (!_.isEqual(currentServices, botAction.detail.response)) {
+        currentServices = botAction.detail.response;
+        if (_services) {
+          bdk.changeBotData(_services.id, serialize(currentServices));
+        } else {
+          bdk.createBotData(
+            roomId,
+            botName,
+            'onCallBotServices',
+            serialize(currentServices)
+          );
+        }
+      }
+      const incidents = _incidentLogs ?
+        JSON.parse(_incidentLogs.value).incidents :
+        [];
+      renderUI(currentServices, currentMessage, null, incidents);
+    });
+};
+
+/**
+ * @param {Object} botAction - Bot Action object that was dispatched
+ */
+const getRecommendationsAction = (botAction) => {
+  bdk.getBotData(roomId, botName)
+    .then((data) => {
+      const recommendedServices = [];
+      const _recommendations = data.body
+        .filter((bd) => bd.name === 'onCallRecommendations')[ZERO];
+      botAction.detail.response.recommendations
+        .map((recommendation) => {
+          if (currentServices[recommendation]) {
+            const temp = {};
+            temp.label = recommendation;
+            temp.value = currentServices[recommendation];
+            recommendedServices.push(temp);
+          }
+        });
+
+      if (!_.isEqual(currentRecommendations, recommendedServices)) {
+        currentRecommendations = recommendedServices;
+        if (_recommendations) {
+          bdk.changeBotData(_recommendations.id,
+            serialize(currentRecommendations));
+        } else {
+          bdk.createBotData(
+            roomId,
+            botName,
+            'onCallRecommendations',
+            serialize(currentRecommendations)
+          );
+        }
+      }
+      const incidents = _incidentLogs ?
+        JSON.parse(_incidentLogs.value).incidents :
+        [];
+      renderUI(currentServices, currentMessage, null, incidents);
+    });
+};
+
+/**
+ * @param {Object} botAction - Bot Action object that was dispatched
+ * @returns {Object} incidents
+ */
+function refreshIncidents(botAction) {
+  const newIncidents = _incidentLogs ?
+    JSON.parse(_incidentLogs.value) :
+    { incidents: [] };
+  newIncidents.incidents =
+    newIncidents.incidents.concat(botAction.detail.response.incidents);
+
+  if (_incidentLogs) {
+    bdk.changeBotData(_incidentLogs.id, serialize(newIncidents))
+      .then((o) => {
+        _incidentLogs = o.body;
+      });
+  } else {
+    bdk.createBotData(
+      roomId,
+      botName,
+      'onCallIncidents',
+      serialize(botAction.detail.response)
+    ).then((o) => {
+      _incidentLogs = o.body;
+    });
+  }
+  return newIncidents;
+}
+
+const handleActionDispatcher = {
+  'getServices': getServicesAction,
+  'getRecommendations': getRecommendationsAction,
+};
+
+/**
  * When a refocus.bot.actions is dispatch it is handled here.
  *
- * @param {BotAction} action - Bot Action object that was dispatched
+ * @param {Object} botAction - Bot Action object that was dispatched
  */
-function handleActions(action) {
-  bdk.log.debug(botName + ' Bot Action Activity', action);
-  if (action.detail.userId === bdk.getUserId()) {
-    if (action.detail.name === 'getServices') {
-      bdk.getBotData(roomId, botName)
-        .then((data) => {
-          const _services = data.body
-            .filter((bd) => bd.name === 'onCallBotServices')[ZERO];
-          if (!_.isEqual(currentServices, action.detail.response)) {
-            currentServices = action.detail.response;
-            if (_services) {
-              bdk.changeBotData(_services.id, serialize(currentServices));
-            } else {
-              bdk.createBotData(
-                roomId,
-                botName,
-                'onCallBotServices',
-                serialize(currentServices)
-              );
-            }
-          }
-          const incidents = _incidentLogs ?
-            JSON.parse(_incidentLogs.value).incidents :
-            [];
-          renderUI(currentServices, currentMessage, null, incidents);
-        });
+function handleActions(botAction) {
+  bdk.log.debug(botName + ' Bot Action Activity', botAction);
+  if (botAction.detail.userId === bdk.getUserId()) {
+    const handleAction = handleActionDispatcher[botAction.detail.name];
+    if (handleAction) {
+      handleAction(botAction);
     } else {
-      const newIncidents = _incidentLogs ?
-        JSON.parse(_incidentLogs.value) :
-        { incidents: [] };
-      newIncidents.incidents =
-        newIncidents.incidents.concat(action.detail.response.incidents);
-
-      if (_incidentLogs) {
-        bdk.changeBotData(_incidentLogs.id, serialize(newIncidents))
-          .then((o) => {
-            _incidentLogs = o.body;
-          });
-      } else {
-        bdk.createBotData(
-          roomId,
-          botName,
-          'onCallIncidents',
-          serialize(action.detail.response)
-        ).then((o) => {
-          _incidentLogs = o.body;
-        });
-      }
-
-      renderUI(
-        currentServices,
-        currentMessage,
-        action.detail.response,
-        newIncidents.incidents
-      );
+      const newIncidents = refreshIncidents(botAction);
+      renderUI(currentServices, currentMessage, botAction.detail.response,
+        newIncidents.incidents);
     }
   }
 }
@@ -179,7 +264,7 @@ function handleActions(action) {
  *
  * @returns {Promise} - Bot Action Promise
  */
-function getServices() {
+function createActionToGetServices() {
   const serviceReq = {
     'name': 'getServices',
     'botId': botName,
@@ -187,8 +272,15 @@ function getServices() {
     'isPending': true,
     'parameters': []
   };
-
   return bdk.createBotAction(serviceReq);
+}
+
+/**
+ * @param {String} name
+ * @param {Object} object
+ */
+function createBotData(name, object) {
+  bdk.createBotData(roomId, botName, name, serialize(object));
 }
 
 /**
@@ -205,52 +297,42 @@ function init() {
         .filter((bd) => bd.name === 'onCallBotData')[ZERO];
       _incidentLogs = data.body
         .filter((bd) => bd.name === 'onCallIncidents')[ZERO];
+      const _recommendations = data.body
+        .filter((bd) => bd.name === 'onCallRecommendations')[ZERO];
       currentServices = _services ? JSON.parse(_services.value) : {};
       currentVariables = _variables ?
         JSON.parse(_variables.value) : defaultVariables;
       currentTemplate = _template ? _template.value : defaultTemplate;
+      currentRecommendations = _recommendations ?
+        JSON.parse(_recommendations.value) : {};
 
-      if (!_services || !_template || !_variables) {
+      if (!_services || !_template || !_variables || !_recommendations) {
         bdk.findRoom(roomId)
           .then((res) => {
             if (!_services || _.isEmpty(_services)) {
               if (res.body.settings && res.body.settings.onCallBotServices) {
                 currentServices = res.body.settings.onCallBotServices;
               }
-
-              bdk.createBotData(
-                roomId,
-                botName,
-                'onCallBotServices',
-                serialize(currentServices)
-              );
-              getServices();
+              createBotData('onCallBotServices', currentServices);
+              createActionToGetServices();
             }
 
             if (!_template) {
               if (res.body.settings && res.body.settings.onCallBotTemplate) {
                 currentTemplate = res.body.settings.onCallBotTemplate;
               }
-
-              bdk.createBotData(
-                roomId,
-                botName,
-                'onCallBotTemplate',
-                serialize(currentTemplate)
-              );
+              createBotData('onCallBotTemplate', currentTemplate);
             }
 
             if (!_variables) {
               if (res.body.settings && res.body.settings.onCallBotData) {
                 currentVariables = res.body.settings.onCallBotData;
               }
+              createBotData('onCallBotData', currentVariables);
+            }
 
-              bdk.createBotData(
-                roomId,
-                botName,
-                'onCallBotData',
-                serialize(currentVariables)
-              );
+            if (!_recommendations) {
+              createBotData('onCallRecommendations', {});
             }
           });
       }
@@ -262,6 +344,9 @@ function init() {
       const selTemplate = handlebars.compile(currentTemplate);
       const unparsedTemp = selTemplate(currentVariables);
       currentMessage = unparsedTemp.toString();
+      if (currentVariables !== {}) {
+        createActionToGetRecommendations();
+      }
       renderUI(currentServices, currentMessage, null, incidents);
     });
 }
