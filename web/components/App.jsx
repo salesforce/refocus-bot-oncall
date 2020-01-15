@@ -49,6 +49,7 @@ class App extends React.Component{
   componentWillReceiveProps(nextProps) {
     this.setState({
       services: nextProps.services,
+      recommendations: nextProps.recommendations,
     });
     this.setState({
       incidents: nextProps.incidents ?
@@ -199,7 +200,7 @@ class App extends React.Component{
                   </div>
                   <div className="slds-size_1-of-1 slds-text-align_center
                    slds-docked-composer__header">
-                    {recommendations.map((service) => {
+                    {recommendations && recommendations.map((service) => {
                       return <li key={service.label}
                         className="slds-show--inline">
                         <button

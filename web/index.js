@@ -28,7 +28,7 @@ let currentVariables = {};
 let currentTemplate = '';
 let currentMessage = '';
 let _incidentLogs = {};
-let currentRecommendations = {};
+let currentRecommendations = [];
 
 
 const defaultVariables = {};
@@ -104,6 +104,7 @@ function createActionToGetRecommendations() {
 const handleDataActionDispatcher = {
   'onCallBotServices': (data) => {
     currentServices = JSON.parse(data.detail.value);
+    createActionToGetRecommendations();
   },
   'onCallIncidents': (data) => {
     _incidentLogs = JSON.parse(data.detail.value);
@@ -111,7 +112,6 @@ const handleDataActionDispatcher = {
   'onCallBotData': (data) => {
     currentVariables = JSON.parse(data.detail.value);
     const selTemplate = handlebars.compile(currentTemplate);
-    createActionToGetRecommendations();
     currentMessage = selTemplate(currentVariables).toString();
   },
   'onCallBotTemplate': (data) => {
@@ -304,7 +304,7 @@ function init() {
         JSON.parse(_variables.value) : defaultVariables;
       currentTemplate = _template ? _template.value : defaultTemplate;
       currentRecommendations = _recommendations ?
-        JSON.parse(_recommendations.value) : {};
+        JSON.parse(_recommendations.value) : [];
 
       if (!_services || !_template || !_variables || !_recommendations) {
         bdk.findRoom(roomId)
@@ -332,7 +332,7 @@ function init() {
             }
 
             if (!_recommendations) {
-              createBotData('onCallRecommendations', {});
+              createBotData('onCallRecommendations', []);
             }
           });
       }
