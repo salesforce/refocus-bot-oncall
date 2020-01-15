@@ -49,6 +49,7 @@ class App extends React.Component{
   componentWillReceiveProps(nextProps) {
     this.setState({
       services: nextProps.services,
+      recommendations: nextProps.recommendations,
     });
     this.setState({
       incidents: nextProps.incidents ?
