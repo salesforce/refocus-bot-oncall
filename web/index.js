@@ -305,11 +305,11 @@ function init() {
       currentTemplate = _template ? _template.value : defaultTemplate;
       currentRecommendations = _recommendations ?
         JSON.parse(_recommendations.value) : [];
-
-      if (!_services || !_template || !_variables || !_recommendations) {
+      if (!_services || _.isEmpty(currentServices) || !_template||
+       !_variables|| !_recommendations) {
         bdk.findRoom(roomId)
           .then((res) => {
-            if (!_services || _.isEmpty(_services)) {
+            if (!_services || _.isEmpty(currentServices)) {
               if (res.body.settings && res.body.settings.onCallBotServices) {
                 currentServices = res.body.settings.onCallBotServices;
               }
