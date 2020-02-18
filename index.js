@@ -23,7 +23,8 @@ const request = require('superagent');
 const { env, pdToken, pdSender, tteToggle } = require('./config.js');
 const PORT = require('./config.js').port;
 const config = require('./config.js')[env];
-const { socketToken, recommendationUrl } = config;
+const { socketToken, recommendationUrl,
+  useNewPDBridge, pdBridgeUrl } = config;
 const POLLING_DELAY = config.pollingDelay;
 const bdk = require('@salesforce/refocus-bdk')(config);
 const packageJSON = require('./package.json');
@@ -35,7 +36,9 @@ const DEFAULT_OFFSET = 0;
 const HEAD = 0;
 const SUCCESS_CODE = 201;
 const SERVICES_LIMIT = 100;
+const USING_NEW_PD_BRIDGE = Boolean(useNewPDBridge && pdBridgeUrl);
 const tteRoomUpdateDelay = 500;
+const pagerDutyServicesUrl = 'https://api.pagerduty.com/services';
 let roomsToUpdate = [];
 
 /* eslint-disable func-style */
@@ -53,15 +56,23 @@ const serviceMap = {};
  * @returns {Promise} - PagerDuty get service promise
  */
 function pdServices(offset) {
+  // Feature Flag
+  const url = USING_NEW_PD_BRIDGE ? pdBridgeUrl :
+    `${pagerDutyServicesUrl}?limit=100&offset=${offset}`;
   return new Promise((resolve) => {
-    request
-      .get('https://api.pagerduty.com/services?limit=100&offset=' + offset)
+    const req = request
+      .get(url)
       .timeout({
         response: 5000, // Wait 5 seconds for the server to start sending,
         deadline: 30000, // but allow 30 seconds for the file to finish loading.
-      })
-      .set('Authorization', `Token token=${pdToken}`)
-      .set('Accept', 'application/vnd.pagerduty+json;version=2')
+      });
+    // Feature Flag
+    if (!USING_NEW_PD_BRIDGE) {
+      req
+        .set('Authorization', `Token token=${pdToken}`)
+        .set('Accept', 'application/vnd.pagerduty+json;version=2');
+    }
+    req
       .then((res) => {
         resolve(res);
       }).catch((error) => {
@@ -100,8 +111,11 @@ function pdIncidentDetail(id) {
  */
 function getServices(offset) {
   return pdServices(offset).then((result) => {
-    services = services.concat(result.body.services);
-    if (result.body.more) {
+    // Feature Flag
+    const resBody = USING_NEW_PD_BRIDGE ? result.body : result.body.services;
+    services = services.concat(resBody);
+    // Feature Flag
+    if (!USING_NEW_PD_BRIDGE && result.body.more) {
       return getServices(offset + SERVICES_LIMIT);
     }
 
