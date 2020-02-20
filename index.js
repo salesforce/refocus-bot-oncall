@@ -111,6 +111,7 @@ function pdIncidentDetail(id) {
  */
 function getServices(offset) {
   return pdServices(offset).then((result) => {
+    if (!result.body) return {};
     // Feature Flag
     const resBody = USING_NEW_PD_BRIDGE ? result.body : result.body.services;
     services = services.concat(resBody);
