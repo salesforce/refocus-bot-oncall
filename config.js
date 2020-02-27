@@ -27,6 +27,8 @@ module.exports = {
     recommendationUrl: process.env.RECOMMENDATION_URL_DEV,
     token: process.env.API_TOKEN_DEV,
     pollingDelay: process.env.POLLING_DELAY_DEV || pollingDelay,
+    useNewPDBridge: process.env.USE_NEW_PD_BRIDGE_DEV || false,
+    pdBridgeUrl: process.env.PD_BRIDGE_URL_DEV || null,
   },
   perf: {
     refocusUrl: process.env.REFOCUS_URL_PERF,
@@ -34,6 +36,8 @@ module.exports = {
     recommendationUrl: process.env.RECOMMENDATION_URL_PERF,
     token: process.env.API_TOKEN_PERF,
     pollingDelay: process.env.POLLING_DELAY_PERF || pollingDelay,
+    useNewPDBridge: process.env.USE_NEW_PD_BRIDGE_PERF || false,
+    pdBridgeUrl: process.env.PD_BRIDGE_URL_PERF || null,
   },
   sandbox: {
     refocusUrl: process.env.REFOCUS_URL_SANDBOX,
@@ -41,6 +45,8 @@ module.exports = {
     recommendationUrl: process.env.RECOMMENDATION_URL_SANDBOX,
     token: process.env.API_TOKEN_SANDBOX,
     pollingDelay: process.env.POLLING_DELAY_SANDBOX || pollingDelay,
+    useNewPDBridge: process.env.USE_NEW_PD_BRIDGE_SANDBOX || false,
+    pdBridgeUrl: process.env.PD_BRIDGE_URL_SANDBOX || null,
   },
   production: {
     refocusUrl: process.env.REFOCUS_URL_PROD,
@@ -48,6 +54,8 @@ module.exports = {
     recommendationUrl: process.env.RECOMMENDATION_URL_PROD,
     token: process.env.API_TOKEN_PROD,
     pollingDelay: process.env.POLLING_DELAY_PROD || pollingDelay,
+    useNewPDBridge: process.env.USE_NEW_PD_BRIDGE_PROD || false,
+    pdBridgeUrl: process.env.PD_BRIDGE_URL_PROD || null,
   },
 };
 
