@@ -16,7 +16,7 @@ const ToastMessage=require('./ToastMessage.jsx');
 const botName = require('../../package.json').name;
 const env = require('../../config.js').env;
 const config = require('../../config.js')[env];
-const bdk = require('@salesforce/refocus-bdk')(config);
+const bdk = require('@salesforce/refocus-bdk')(config, botName);
 const ZERO = 0;
 
 class App extends React.Component{
