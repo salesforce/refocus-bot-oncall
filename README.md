@@ -91,4 +91,4 @@ Follows [semantic versioning](https://docs.npmjs.com/getting-started/semantic-ve
 * 1.1.5 End time TTe should be resolve not acknowledge
 * 1.2.0 Adding recommendation services
 * 1.2.1 refactoring to remove some extra ifs
-
+* 1.2.2 Updated frontend bdk instantiations for realtime app.
