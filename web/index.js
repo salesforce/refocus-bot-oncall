@@ -21,7 +21,7 @@ const App = require('./components/App.jsx');
 const botName = require('../package.json').name;
 const env = require('../config.js').env;
 const config = require('../config.js')[env];
-const bdk = require('@salesforce/refocus-bdk')(config);
+const bdk = require('@salesforce/refocus-bdk')(config, botName);
 
 let currentServices = {};
 let currentVariables = {};
