@@ -11,12 +11,14 @@
  * This code handles initial render of the bot and any re-renders triggered
  * from javascript events.
  */
-const _ = require('lodash');
-const handlebars = require('handlebars');
+
+import App from './components/App.jsx';
+import isEqual from 'lodash/isEqual';
+import isEmpty from 'lodash/isEmpty';
+const { compile } = require('handlebars');
 const React = require('react');
 const ReactDOM = require('react-dom');
 const serialize = require('serialize-javascript');
-const App = require('./components/App.jsx');
 
 const botName = require('../package.json').name;
 const env = require('../config.js').env;
@@ -111,12 +113,12 @@ const handleDataActionDispatcher = {
   },
   'onCallBotData': (data) => {
     currentVariables = JSON.parse(data.detail.value);
-    const selTemplate = handlebars.compile(currentTemplate);
+    const selTemplate = compile(currentTemplate);
     currentMessage = selTemplate(currentVariables).toString();
   },
   'onCallBotTemplate': (data) => {
     currentTemplate = JSON.parse(data.detail.value);
-    const selTemplate = handlebars.compile(currentTemplate);
+    const selTemplate = compile(currentTemplate);
     currentMessage = selTemplate(currentVariables).toString();
   }
 };
@@ -146,7 +148,7 @@ const getServicesAction = (botAction) => {
     .then((data) => {
       const _services = data.body
         .filter((bd) => bd.name === 'onCallBotServices')[ZERO];
-      if (!_.isEqual(currentServices, botAction.detail.response)) {
+      if (!isEqual(currentServices, botAction.detail.response)) {
         currentServices = botAction.detail.response;
         if (_services) {
           bdk.changeBotData(_services.id, serialize(currentServices));
@@ -185,7 +187,7 @@ const getRecommendationsAction = (botAction) => {
           }
         });
 
-      if (!_.isEqual(currentRecommendations, recommendedServices)) {
+      if (!isEqual(currentRecommendations, recommendedServices)) {
         currentRecommendations = recommendedServices;
         if (_recommendations) {
           bdk.changeBotData(_recommendations.id,
@@ -305,11 +307,11 @@ function init() {
       currentTemplate = _template ? _template.value : defaultTemplate;
       currentRecommendations = _recommendations ?
         JSON.parse(_recommendations.value) : [];
-      if (!_services || _.isEmpty(currentServices) || !_template||
+      if (!_services || isEmpty(currentServices) || !_template||
        !_variables|| !_recommendations) {
         bdk.findRoom(roomId)
           .then((res) => {
-            if (!_services || _.isEmpty(currentServices)) {
+            if (!_services || isEmpty(currentServices)) {
               if (res.body.settings && res.body.settings.onCallBotServices) {
                 currentServices = res.body.settings.onCallBotServices;
               }
@@ -341,7 +343,7 @@ function init() {
       const incidents = _incidentLogs ?
         JSON.parse(_incidentLogs.value).incidents :
         [];
-      const selTemplate = handlebars.compile(currentTemplate);
+      const selTemplate = compile(currentTemplate);
       const unparsedTemp = selTemplate(currentVariables);
       currentMessage = unparsedTemp.toString();
       if (currentVariables !== {}) {

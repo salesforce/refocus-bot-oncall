@@ -10,7 +10,7 @@ import PropTypes from 'prop-types';
 import Select from 'react-select';
 import 'react-select/dist/react-select.css';
 import './overrides.css';
-const _ = require('lodash');
+import isEqual from 'lodash/isEqual';
 const React=require('react');
 const ToastMessage=require('./ToastMessage.jsx');
 const botName = require('../../package.json').name;
@@ -148,7 +148,7 @@ class App extends React.Component{
 
     return (
       <div>
-        { (_.isEqual(services, {}) || this.state.waiting) ? (
+        { (isEqual(services, {}) || this.state.waiting) ? (
           <div style={{ height: '6rem', position: 'relative' }}>
             <div className={spinnerCSS}>
               <span className="slds-assistive-text">Loading</span>
@@ -279,4 +279,4 @@ App.propTypes={
   incidents: PropTypes.array
 };
 
-module.exports=App;
+export default App;

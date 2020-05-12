@@ -130,7 +130,7 @@
       "afterColon": true
     }],
     "linebreak-style": [2, "unix"],
-    "lines-around-comment": 1,
+    "lines-around-comment": 0,
     "max-depth": 2,
     "max-len": [2, 80, 2],
     "max-nested-callbacks": [2, 6],
