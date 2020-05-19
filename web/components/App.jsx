@@ -169,10 +169,10 @@ class App extends React.Component{
 
       this.setState({
         selectedTeams: [],
-        // waiting: true
+        waiting: true
       });
 
-      // bdk.createBotAction(serviceReq);
+      bdk.createBotAction(serviceReq);
     }
   }
 
