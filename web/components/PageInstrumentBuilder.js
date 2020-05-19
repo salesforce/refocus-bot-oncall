@@ -50,6 +50,10 @@ class PageInstrumentBuilder {
     }
   }
 
+  /**
+   * @param {string} teamName
+   * @returns {PageInstrument} - created instrument
+   */
   createRecommendationAddedInstrument(teamName) {
     const pageInstrumentOptions = {
       type: instrumentTypes.RECOMMENDATION_ADDED,
@@ -60,6 +64,10 @@ class PageInstrumentBuilder {
     return this.createNewPageInstrument(pageInstrumentOptions);
   }
 
+  /**
+   * @param {string} teamName
+   * @returns {PageInstrument} - created instrument
+   */
   createRecommendationRemovedInstrument(teamName) {
     const pageInstrumentOptions = {
       type: instrumentTypes.RECOMMENDATION_REMOVED,
@@ -70,6 +78,9 @@ class PageInstrumentBuilder {
     return this.createNewPageInstrument(pageInstrumentOptions);
   }
 
+  /**
+   * @returns {PageInstrument} - created instrument
+   */
   createRecommendationPagedInstrument() {
     const pageInstrumentOptions = {
       type: instrumentTypes.RECOMMENDATION_PAGED,
@@ -81,6 +92,9 @@ class PageInstrumentBuilder {
     return this.createNewPageInstrument(pageInstrumentOptions);
   }
 
+  /**
+   * @returns {PageInstrument} - created instrument
+   */
   createDropdownPagedInstrument() {
     const pageInstrumentOptions = {
       type: instrumentTypes.DROPDOWN_SELECTION_PAGED,
