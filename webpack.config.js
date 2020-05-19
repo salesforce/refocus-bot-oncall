@@ -16,10 +16,9 @@ const env = require('./config.js').env;
 const url = require('./config.js')[env].refocusUrl;
 const botName = require('./package.json').name;
 const TerserPlugin = require('terser-webpack-plugin');
-const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
-const Webpack = require('webpack');
 
 const config = {
+  mode: 'production',
   entry: './web/index.js',
   output: {
     path: path.resolve(__dirname, './web/dist'),
@@ -28,9 +27,10 @@ const config = {
   },
   optimization: {
     minimize: true,
-    minimizer: [new TerserPlugin({
-
-    })],
+    minimizer: [new TerserPlugin({})],
+    splitChunks: {
+      chunks: 'all',
+    },
   },
   resolve: {
     alias: {
@@ -90,9 +90,6 @@ const config = {
       systemvars: true
     }),
     new LodashPlugin(),
-    new Webpack.DefinePlugin({
-      'process.env.NODE_ENV': JSON.stringify('production')
-    })
   ]
 };
 
