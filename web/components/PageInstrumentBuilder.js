@@ -6,6 +6,9 @@ class PageInstrumentBuilder {
    * @param {string[]} listOfRecommendations - current list of recommendations from model.
    */
   constructor(roomCreatedDate, listOfRecommendations = []) {
+    if (!roomCreatedDate) {
+      console.error('Err: PageInstrumentBuilder Constructor. No roomCreatedDate supplied');
+    }
     this.setRoomCreatedDate(roomCreatedDate);
     this.setListOfRecommendations(listOfRecommendations);
   }
