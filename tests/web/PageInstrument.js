@@ -11,29 +11,6 @@ const testTeam = 'IMC';
 const testTTe = 1240;
 
 describe('web/PageInstrument.js >', () => {
-  describe('createPageInstrument', () => {
-    it('Ok, creates an instance of PageInstrument', () => {
-      const instrument = PageInstrument.createPageInstrument(
-        {
-          type: instrumentTypes.RECOMMENDATION_ADDED,
-          numberOfRecommendations: 5,
-          position: 3,
-          teamName: 'IMC'
-        });
-      expect(instrument).to.not.equal(null);
-    });
-
-    it('Ok, creates instance of PageInstrument of type `paged` with tte', () => {
-      const testPageInstrument = PageInstrument.createPageInstrument({
-        type: validPageType,
-        numberOfRecommendations: validNumberOfRecommendations,
-        position: validPosition,
-        teamName: testTeam,
-        tte: testTTe
-      });
-      expect(testPageInstrument).to.not.equal(null);
-    });
-  });
   describe('constructor >', () => {
     it('Fail, tried to create instance of PageInstrument without correct type', () => {
       let errorMessage = null;
