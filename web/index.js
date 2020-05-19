@@ -50,6 +50,9 @@ const roomId = bdk.getRoomId();
  * @param {Array} incidentList - List of incidents
  */
 function renderUI(services, message, response, incidentList) {
+  const recommendations = currentRecommendations.map(({ label, value }) => {
+    return { label, value };
+  });
   ReactDOM.render(
     <App
       roomId={roomId}
@@ -57,7 +60,7 @@ function renderUI(services, message, response, incidentList) {
       message={message}
       response={response}
       incidents={incidentList}
-      recommendations={currentRecommendations}
+      recommendations={recommendations}
     />,
     document.getElementById(botName)
   );
@@ -172,40 +175,26 @@ const getServicesAction = (botAction) => {
  * @param {Object} botAction - Bot Action object that was dispatched
  */
 const getRecommendationsAction = (botAction) => {
-  bdk.getBotData(roomId, botName)
-    .then((data) => {
-      const recommendedServices = [];
-      const _recommendations = data.body
-        .filter((bd) => bd.name === 'onCallRecommendations')[ZERO];
-      botAction.detail.response.recommendations
-        .map((recommendation) => {
-          if (currentServices[recommendation]) {
-            const temp = {};
-            temp.label = recommendation;
-            temp.value = currentServices[recommendation];
-            recommendedServices.push(temp);
-          }
-        });
-
-      if (!isEqual(currentRecommendations, recommendedServices)) {
-        currentRecommendations = recommendedServices;
-        if (_recommendations) {
-          bdk.changeBotData(_recommendations.id,
-            serialize(currentRecommendations));
-        } else {
-          bdk.createBotData(
-            roomId,
-            botName,
-            'onCallRecommendations',
-            serialize(currentRecommendations)
-          );
-        }
-      }
-      const incidents = _incidentLogs ?
-        JSON.parse(_incidentLogs.value).incidents :
-        [];
-      renderUI(currentServices, currentMessage, null, incidents);
+  if (!botAction.detail.response.recommendations) return;
+  const recommendedServices =
+  botAction.detail.response.recommendations
+    .filter((recommendation) => currentServices[recommendation])
+    .map((recommendation) => {
+      return {
+        label: recommendation,
+        value: currentServices[recommendation]
+      };
     });
+
+  if (!isEqual(currentRecommendations, recommendedServices)) {
+    currentRecommendations = recommendedServices;
+    bdk.upsertBotData(roomId, botName, 'onCallRecommendations',
+      serialize(currentRecommendations));
+  }
+  const incidents = _incidentLogs ?
+    JSON.parse(_incidentLogs.value).incidents :
+    [];
+  renderUI(currentServices, currentMessage, null, incidents);
 };
 
 /**
