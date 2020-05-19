@@ -82,7 +82,18 @@ class App extends React.Component{
     this.setState({ selectedTeams: updatedSelectedTeams });
   }
 
-  async handleSelectChange(value, actionType) {
+  instrumentRecommendationRemoved(removedTeamName) {
+    const removalInstrument = this.pageInstrumentBuilder
+      .createRecommendationRemovedInstrument(removedTeamName);
+    PageInstrumentStore.storeNewPageEvent(removalInstrument)
+      .catch((err) => console.error(err));
+  }
+
+  /**
+   * @param {array} value - new value of select component
+   * @param {string} actionType - type of action occurring
+   */
+  handleSelectChange(value, actionType) {
     if (actionType.action === 'remove-value') {
       const removedTeamName = actionType.removedValue.label;
       this.removeTeamFromSelectedTeams(removedTeamName);
@@ -93,13 +104,6 @@ class App extends React.Component{
     } else {
       this.setState({ selectedTeams: [value] });
     }
-  }
-
-  instrumentRecommendationRemoved(removedTeamName) {
-    const removalInstrument = this.pageInstrumentBuilder
-      .createRecommendationRemovedInstrument(removedTeamName);
-    PageInstrumentStore.storeNewPageEvent(removalInstrument)
-      .catch((err) => console.error(err));
   }
 
   /**
@@ -120,18 +124,11 @@ class App extends React.Component{
     }
   }
 
-  toggleCheckbox (e) {
-    this.setState({
-      [e.target.name]: e.target.checked,
-    });
-  }
-
-  toggleRtl (e) {
-    const rtl = e.target.checked;
-    this.setState({ rtl });
-  }
-
-  async handlePageButtonClick(services) {
+  /**
+   * Pages the required services and creates instruments.
+   * @param {object[]} services - list of services to page
+   */
+  handlePageButtonClick(services) {
     this.pageGroup(services);
     const servicesIncludeARecommendation = services.findIndex((service) =>
       service.isRecommendation) > -1;
@@ -141,7 +138,18 @@ class App extends React.Component{
     } else {
       pageEvent = this.pageInstrumentBuilder.createDropdownPagedInstrument();
     }
-    await PageInstrumentStore.storeNewPageEvent(pageEvent);
+    PageInstrumentStore.storeNewPageEvent(pageEvent);
+  }
+
+  toggleCheckbox (e) {
+    this.setState({
+      [e.target.name]: e.target.checked,
+    });
+  }
+
+  toggleRtl (e) {
+    const rtl = e.target.checked;
+    this.setState({ rtl });
   }
 
   pageGroup(services) {
