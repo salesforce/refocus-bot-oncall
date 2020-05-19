@@ -26,12 +26,9 @@ class App extends React.Component{
     super(props);
 
     this.state = {
-      roomId: props.roomId,
       response: props.response,
-      services: props.services,
       selectedTeams: [],
       rtl: false,
-      message: props.message,
       waiting: false,
       incidents: props.incidents ? props.incidents : [],
       selectOpen: false,
@@ -60,7 +57,6 @@ class App extends React.Component{
       }
       this.setState({ waiting: false });
     }
-
     if (prevProps.recommendations.length !== this.props.recommendations.length) {
       this.pageInstrumentBuilder
         .setListOfRecommendations(this.props.recommendations.map(({ label }) => label));
@@ -79,14 +75,14 @@ class App extends React.Component{
     });
   }
 
-  removeTeamFromSelectedTeams (nameOfTeamToRemove) {
+  removeTeamFromSelectedTeams(nameOfTeamToRemove) {
     const { selectedTeams } = this.state;
     const updatedSelectedTeams = selectedTeams
       .filter((team) => team.label !== nameOfTeamToRemove);
     this.setState({ selectedTeams: updatedSelectedTeams });
   }
 
-  async handleSelectChange (value, actionType) {
+  async handleSelectChange(value, actionType) {
     if (actionType.action === 'remove-value') {
       const removedTeamName = actionType.removedValue.label;
       this.removeTeamFromSelectedTeams(removedTeamName);
@@ -99,7 +95,7 @@ class App extends React.Component{
     }
   }
 
-  instrumentRecommendationRemoved (removedTeamName) {
+  instrumentRecommendationRemoved(removedTeamName) {
     const removalInstrument = this.pageInstrumentBuilder
       .createRecommendationRemovedInstrument(removedTeamName);
     PageInstrumentStore.storeNewPageEvent(removalInstrument)
@@ -111,7 +107,7 @@ class App extends React.Component{
    * @param {string} selectedRecommendation.label - name of team
    * @param {string} selectedRecommendation.value - pagerDuty id of team
    */
-  async handleRecommendationSelect (selectedRecommendation) {
+  handleRecommendationSelect(selectedRecommendation) {
     const currentValues = this.state.selectedTeams;
     if (!currentValues.includes(selectedRecommendation)) {
       selectedRecommendation.isRecommendation = true;
