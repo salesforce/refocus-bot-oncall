@@ -18,7 +18,6 @@ const botName = require('./package.json').name;
 const TerserPlugin = require('terser-webpack-plugin');
 
 const config = {
-  mode: 'production',
   entry: './web/index.js',
   output: {
     path: path.resolve(__dirname, './web/dist'),
@@ -28,9 +27,6 @@ const config = {
   optimization: {
     minimize: true,
     minimizer: [new TerserPlugin({})],
-    splitChunks: {
-      chunks: 'all',
-    },
   },
   resolve: {
     alias: {
@@ -90,7 +86,9 @@ const config = {
       systemvars: true
     }),
     new LodashPlugin(),
-  ]
+  ],
 };
-
+if (process.env.NODE_ENV !== 'production') {
+  config.optimization.minimize = false;
+}
 module.exports = config;
