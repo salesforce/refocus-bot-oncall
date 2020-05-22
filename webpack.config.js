@@ -88,6 +88,8 @@ const config = {
     new LodashPlugin(),
   ],
 };
+
+// eslint-disable-next-line no-process-env
 if (process.env.NODE_ENV !== 'production') {
   config.optimization.minimize = false;
 }
