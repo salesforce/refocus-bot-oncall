@@ -15,9 +15,9 @@
 import App from './components/App.jsx';
 import isEqual from 'lodash/isEqual';
 import isEmpty from 'lodash/isEmpty';
-const { compile } = require('handlebars');
-const React = require('react');
-const ReactDOM = require('react-dom');
+import { compile } from 'handlebars';
+import React from 'react';
+import ReactDOM from 'react-dom';
 const serialize = require('serialize-javascript');
 
 const botName = require('../package.json').name;

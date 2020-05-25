@@ -7,7 +7,7 @@
   "scripts": {
     "start-ui": "webpack-dev-server --open",
     "start": "npm run build-ui && node index.js",
-    "build-ui": "webpack --config webpack.config.js --mode development",
+    "build-ui": "webpack --config webpack.config.js",
     "compile": "babel src -d lib",
     "lint": "eslint --ext=js --ext=jsx .",
     "postinstall": "npm run build-ui",

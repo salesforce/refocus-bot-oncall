@@ -10,10 +10,12 @@ class PageInstrumentStore {
    * @returns {Promise} - resolves the new list of page instruments
    */
   static async storeNewPageEvent (instrument) {
+    if (!instrument) return null;
     const instrumentString = instrument.toString();
     const storedEventsBotData = await bdk
-      .getBotData(roomId, botName, 'onCallPagerEvents');
-    const storedEventList = storedEventsBotData.body[0].value;
+      .getBotData(roomId, botName, 'onCallPagerEvents')
+      .catch((err) => bdk.log.error(err));
+    const storedEventList = storedEventsBotData?.body?.[0]?.value;
     let dataToUpsert = null;
     if (storedEventList) {
       dataToUpsert = JSON.parse(storedEventList);
@@ -21,7 +23,8 @@ class PageInstrumentStore {
     } else {
       dataToUpsert = [instrumentString];
     }
-    await bdk.upsertBotData(roomId, botName, 'onCallPagerEvents', dataToUpsert);
+    await bdk.upsertBotData(roomId, botName, 'onCallPagerEvents', dataToUpsert)
+      .catch((err) => bdk.log.error(err));
     return dataToUpsert;
   }
 }
