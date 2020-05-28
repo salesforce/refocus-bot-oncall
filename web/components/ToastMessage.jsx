@@ -71,4 +71,4 @@ ToastMessage.propTypes={
   removeToastHandler: PropTypes.func,
 };
 
-module.exports=ToastMessage;
+export default ToastMessage;

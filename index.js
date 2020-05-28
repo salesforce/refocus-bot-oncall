@@ -34,6 +34,7 @@ const getRecommendations = require('./utils/recommendations.js')
 const botName = packageJSON.name;
 const DEFAULT_OFFSET = 0;
 const HEAD = 0;
+const ZERO = 0;
 const SUCCESS_CODE = 201;
 const SERVICES_LIMIT = 100;
 const USING_NEW_PD_BRIDGE = Boolean(useNewPDBridge && pdBridgeUrl);
@@ -226,16 +227,17 @@ function updateLocalRoomData() {
  * @param {Event} event - The most recent event object
  */
 function handleEvents(event) {
-  bdk.log.info('Event Activity', event.roomId);
+  bdk.log.debug('Event Activity', event.roomId);
   if (event.context.type === 'RoomState') {
-    // If a room is deactivated take it it out of 'roomsToUpdate'
-    if (!event.context.active && roomsToUpdate
-      .filter((room) => room.roomId === event.roomId).length > DEFAULT_OFFSET) {
-      roomsToUpdate = roomsToUpdate
-        .filter((room) => room.roomId !== event.roomId);
-    } else {
+    const roomIsBeingPolled = roomsToUpdate
+      .filter((room) => room.roomId === event.roomId).length > ZERO;
+
+    if (event.context.active && !roomIsBeingPolled) {
       const newRoom = { roomId: event.roomId, botId: botName };
       roomsToUpdate.push(newRoom);
+    } else if (!event.context.active && roomIsBeingPolled){
+      roomsToUpdate = roomsToUpdate
+        .filter((room) => room.roomId !== event.roomId);
     }
     updateLocalRoomData()
       .catch((error) => bdk.log.error('updateLocalRoomData', error));
@@ -248,7 +250,7 @@ function handleEvents(event) {
  * @param {Object} data - Bot Data object that was dispatched
  */
 function handleData(data) {
-  bdk.log.info('Bot Data Activity',
+  bdk.log.debug('Bot Data Activity',
     data.new ? data.new.name : data.name);
 
   if (data.name === 'onCallIncidents') {
@@ -366,7 +368,7 @@ function updateActiveRoomIncidents() {
  * @param {Object} room - Room object that was dispatched
  */
 function handleSettings(room) {
-  bdk.log.info('Room Settings Activity', room.name);
+  bdk.log.debug('Room Settings Activity', room.name);
 }
 
 const pageServicesAction = (action) => {

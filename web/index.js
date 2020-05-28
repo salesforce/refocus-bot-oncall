@@ -11,12 +11,14 @@
  * This code handles initial render of the bot and any re-renders triggered
  * from javascript events.
  */
-const _ = require('lodash');
-const handlebars = require('handlebars');
-const React = require('react');
-const ReactDOM = require('react-dom');
+
+import App from './components/App.jsx';
+import isEqual from 'lodash/isEqual';
+import isEmpty from 'lodash/isEmpty';
+import { compile } from 'handlebars';
+import React from 'react';
+import ReactDOM from 'react-dom';
 const serialize = require('serialize-javascript');
-const App = require('./components/App.jsx');
 
 const botName = require('../package.json').name;
 const env = require('../config.js').env;
@@ -48,6 +50,9 @@ const roomId = bdk.getRoomId();
  * @param {Array} incidentList - List of incidents
  */
 function renderUI(services, message, response, incidentList) {
+  const recommendations = currentRecommendations.map(({ label, value }) => {
+    return { label, value };
+  });
   ReactDOM.render(
     <App
       roomId={roomId}
@@ -55,7 +60,7 @@ function renderUI(services, message, response, incidentList) {
       message={message}
       response={response}
       incidents={incidentList}
-      recommendations={currentRecommendations}
+      recommendations={recommendations}
     />,
     document.getElementById(botName)
   );
@@ -111,12 +116,12 @@ const handleDataActionDispatcher = {
   },
   'onCallBotData': (data) => {
     currentVariables = JSON.parse(data.detail.value);
-    const selTemplate = handlebars.compile(currentTemplate);
+    const selTemplate = compile(currentTemplate);
     currentMessage = selTemplate(currentVariables).toString();
   },
   'onCallBotTemplate': (data) => {
     currentTemplate = JSON.parse(data.detail.value);
-    const selTemplate = handlebars.compile(currentTemplate);
+    const selTemplate = compile(currentTemplate);
     currentMessage = selTemplate(currentVariables).toString();
   }
 };
@@ -146,7 +151,7 @@ const getServicesAction = (botAction) => {
     .then((data) => {
       const _services = data.body
         .filter((bd) => bd.name === 'onCallBotServices')[ZERO];
-      if (!_.isEqual(currentServices, botAction.detail.response)) {
+      if (!isEqual(currentServices, botAction.detail.response)) {
         currentServices = botAction.detail.response;
         if (_services) {
           bdk.changeBotData(_services.id, serialize(currentServices));
@@ -170,40 +175,26 @@ const getServicesAction = (botAction) => {
  * @param {Object} botAction - Bot Action object that was dispatched
  */
 const getRecommendationsAction = (botAction) => {
-  bdk.getBotData(roomId, botName)
-    .then((data) => {
-      const recommendedServices = [];
-      const _recommendations = data.body
-        .filter((bd) => bd.name === 'onCallRecommendations')[ZERO];
-      botAction.detail.response.recommendations
-        .map((recommendation) => {
-          if (currentServices[recommendation]) {
-            const temp = {};
-            temp.label = recommendation;
-            temp.value = currentServices[recommendation];
-            recommendedServices.push(temp);
-          }
-        });
-
-      if (!_.isEqual(currentRecommendations, recommendedServices)) {
-        currentRecommendations = recommendedServices;
-        if (_recommendations) {
-          bdk.changeBotData(_recommendations.id,
-            serialize(currentRecommendations));
-        } else {
-          bdk.createBotData(
-            roomId,
-            botName,
-            'onCallRecommendations',
-            serialize(currentRecommendations)
-          );
-        }
-      }
-      const incidents = _incidentLogs ?
-        JSON.parse(_incidentLogs.value).incidents :
-        [];
-      renderUI(currentServices, currentMessage, null, incidents);
+  if (!botAction.detail.response.recommendations) return;
+  const recommendedServices =
+  botAction.detail.response.recommendations
+    .filter((recommendation) => currentServices[recommendation])
+    .map((recommendation) => {
+      return {
+        label: recommendation,
+        value: currentServices[recommendation]
+      };
     });
+
+  if (!isEqual(currentRecommendations, recommendedServices)) {
+    currentRecommendations = recommendedServices;
+    bdk.upsertBotData(roomId, botName, 'onCallRecommendations',
+      serialize(currentRecommendations));
+  }
+  const incidents = _incidentLogs ?
+    JSON.parse(_incidentLogs.value).incidents :
+    [];
+  renderUI(currentServices, currentMessage, null, incidents);
 };
 
 /**
@@ -305,11 +296,11 @@ function init() {
       currentTemplate = _template ? _template.value : defaultTemplate;
       currentRecommendations = _recommendations ?
         JSON.parse(_recommendations.value) : [];
-      if (!_services || _.isEmpty(currentServices) || !_template||
+      if (!_services || isEmpty(currentServices) || !_template||
        !_variables|| !_recommendations) {
         bdk.findRoom(roomId)
           .then((res) => {
-            if (!_services || _.isEmpty(currentServices)) {
+            if (!_services || isEmpty(currentServices)) {
               if (res.body.settings && res.body.settings.onCallBotServices) {
                 currentServices = res.body.settings.onCallBotServices;
               }
@@ -341,7 +332,7 @@ function init() {
       const incidents = _incidentLogs ?
         JSON.parse(_incidentLogs.value).incidents :
         [];
-      const selTemplate = handlebars.compile(currentTemplate);
+      const selTemplate = compile(currentTemplate);
       const unparsedTemp = selTemplate(currentVariables);
       currentMessage = unparsedTemp.toString();
       if (currentVariables !== {}) {

@@ -8,9 +8,11 @@
 
 import PropTypes from 'prop-types';
 import Select from 'react-select';
-import 'react-select/dist/react-select.css';
 import './overrides.css';
-const _ = require('lodash');
+import isEqual from 'lodash/isEqual';
+import PageInstrumentBuilder from './PageInstrumentBuilder';
+import PageInstrumentStore from './PageInstrumentStore';
+
 const React=require('react');
 const ToastMessage=require('./ToastMessage.jsx');
 const botName = require('../../package.json').name;
@@ -24,13 +26,9 @@ class App extends React.Component{
     super(props);
 
     this.state = {
-      roomId: props.roomId,
       response: props.response,
-      services: props.services,
-      recommendations: props.recommendations,
-      value: [],
+      selectedTeams: [],
       rtl: false,
-      message: props.message,
       waiting: false,
       incidents: props.incidents ? props.incidents : [],
       selectOpen: false,
@@ -45,27 +43,23 @@ class App extends React.Component{
     this.handleSelectClose = this.handleSelectClose.bind(this);
   }
 
-  /* eslint-disable react/no-deprecated */
-  componentWillReceiveProps(nextProps) {
-    this.setState({
-      services: nextProps.services,
-      recommendations: nextProps.recommendations,
-    });
-    this.setState({
-      incidents: nextProps.incidents ?
-        nextProps.incidents :
-        this.state.incidents,
-    });
+  async componentDidMount () {
+    const createdDate = await this.getRoomCreatedDate();
+    this.pageInstrumentBuilder = new PageInstrumentBuilder(createdDate,
+      this.props.recommendations.map(({ label }) => label));
+  }
 
-    if (nextProps.response) {
-      this.setState({ waiting: false });
+
+  componentDidUpdate(prevProps) {
+    if (this.props.response) {
       if (this.state.waiting) {
-        this.setState({ response: nextProps.response });
+        this.setState({ response: this.props.response });
       }
+      this.setState({ waiting: false });
     }
-
-    if (nextProps.message) {
-      this.setState({ message: nextProps.message });
+    if (prevProps.recommendations.length !== this.props.recommendations.length) {
+      this.pageInstrumentBuilder
+        .setListOfRecommendations(this.props.recommendations.map(({ label }) => label));
     }
   }
 
@@ -73,13 +67,78 @@ class App extends React.Component{
     this.setState({ response: null });
   }
 
-  handleSelectChange (value) {
-    const values = value.split(',');
-    if (Array.isArray(values)) {
-      this.setState({ value: values });
+  getRoomCreatedDate() {
+    return new Promise((resolve, reject) => {
+      bdk.findRoom(this.props.roomId).then((room) => {
+        resolve(new Date(room.body.createdAt));
+      }).catch(reject);
+    });
+  }
+
+  removeTeamFromSelectedTeams(nameOfTeamToRemove) {
+    const { selectedTeams } = this.state;
+    const updatedSelectedTeams = selectedTeams
+      .filter((team) => team.label !== nameOfTeamToRemove);
+    this.setState({ selectedTeams: updatedSelectedTeams });
+  }
+
+  instrumentRecommendationRemoved(removedTeamName) {
+    const removalInstrument = this.pageInstrumentBuilder
+      .createRecommendationRemovedInstrument(removedTeamName);
+    PageInstrumentStore.storeNewPageEvent(removalInstrument)
+      .catch((err) => console.error(err));
+  }
+
+  /**
+   * @param {array} value - new value of select component
+   * @param {string} actionType - type of action occurring
+   */
+  handleSelectChange(value, actionType) {
+    if (actionType.action === 'remove-value') {
+      const removedTeamName = actionType.removedValue.label;
+      this.removeTeamFromSelectedTeams(removedTeamName);
+      if (actionType.removedValue.isRecommendation)
+        this.instrumentRecommendationRemoved(removedTeamName);
+    } else if (Array.isArray(value)) {
+      this.setState({ selectedTeams: value });
     } else {
-      this.setState({ value: [values] });
+      this.setState({ selectedTeams: [value] });
     }
+  }
+
+  /**
+   * @param {object} selectedRecommendation
+   * @param {string} selectedRecommendation.label - name of team
+   * @param {string} selectedRecommendation.value - pagerDuty id of team
+   */
+  handleRecommendationSelect(selectedRecommendation) {
+    const currentValues = this.state.selectedTeams;
+    if (!currentValues.includes(selectedRecommendation)) {
+      selectedRecommendation.isRecommendation = true;
+      currentValues.push(selectedRecommendation);
+      this.setState({ selectedTeams: currentValues });
+      const instrument = this.pageInstrumentBuilder
+        .createRecommendationAddedInstrument(selectedRecommendation.label);
+      PageInstrumentStore.storeNewPageEvent(instrument)
+        .catch((err) => console.error(err));
+    }
+  }
+
+  /**
+   * Pages the required services and creates instruments.
+   * @param {object[]} services - list of services to page
+   */
+  handlePageButtonClick(services) {
+    this.pageGroup(services);
+    const servicesIncludeARecommendation = services.findIndex((service) =>
+      service.isRecommendation) > -1;
+    let pageEvent;
+    if (servicesIncludeARecommendation) {
+      pageEvent = this.pageInstrumentBuilder.createRecommendationPagedInstrument();
+    } else {
+      pageEvent = this.pageInstrumentBuilder.createDropdownPagedInstrument();
+    }
+    PageInstrumentStore.storeNewPageEvent(pageEvent);
   }
 
   toggleCheckbox (e) {
@@ -98,7 +157,7 @@ class App extends React.Component{
       const serviceReq = {
         'name': 'pagerServices',
         'botId': botName,
-        'roomId': this.state.roomId,
+        'roomId': this.props.roomId,
         'isPending': true,
         'parameters': [
           {
@@ -107,13 +166,13 @@ class App extends React.Component{
           },
           {
             'name': 'message',
-            'value': this.state.message,
+            'value': this.props.message,
           },
         ]
       };
 
       this.setState({
-        value: [],
+        selectedTeams: [],
         waiting: true
       });
 
@@ -130,8 +189,8 @@ class App extends React.Component{
   }
 
   render(){
-    const { services, value, incidents, selectOpen,
-      recommendations } = this.state;
+    const { selectedTeams, selectOpen } = this.state;
+    const { services, incidents, recommendations } = this.props;
     const options = [];
     Object.keys(services).forEach((key) => {
       const service = {};
@@ -148,7 +207,7 @@ class App extends React.Component{
 
     return (
       <div>
-        { (_.isEqual(services, {}) || this.state.waiting) ? (
+        { (isEqual(services, {}) || this.state.waiting) ? (
           <div style={{ height: '6rem', position: 'relative' }}>
             <div className={spinnerCSS}>
               <span className="slds-assistive-text">Loading</span>
@@ -169,15 +228,15 @@ class App extends React.Component{
                 <div
                   className="slds-form-element__control slds-p-around_x-small">
                   <Select
-                    multi
+                    isMulti={true}
                     onChange={this.handleSelectChange}
                     onOpen={this.handleSelectOpen}
                     onClose={this.handleSelectClose}
                     options={options}
                     placeholder="Select Groups to Page"
-                    rtl={this.state.rtl}
+                    isRtl={this.state.rtl}
                     simpleValue
-                    value={value}
+                    value={selectedTeams}
                   />
                 </div>
               </div>
@@ -185,7 +244,7 @@ class App extends React.Component{
                 className="slds-text-align_center slds-p-top_x-small">
                 <button
                   className="slds-button slds-button_brand"
-                  onClick={() => this.pageGroup(value)}>
+                  onClick={() => this.handlePageButtonClick(selectedTeams)}>
                   Page
                 </button>
               </div>
@@ -207,8 +266,7 @@ class App extends React.Component{
                           className="slds-button slds-button_brand
                            slds-m-around_x-small"
                           onClick={() => {
-                            value.push(service.value);
-                            this.handleSelectChange(value.toString());
+                            this.handleRecommendationSelect(service);
                           }}>
                           {service.label}
                         </button>
@@ -275,8 +333,13 @@ App.propTypes={
   response: PropTypes.object,
   services: PropTypes.object,
   message: PropTypes.string,
-  recommendations: PropTypes.array,
+  recommendations: PropTypes.arrayOf(
+    PropTypes.exact({
+      label: PropTypes.string.isRequired,
+      value: PropTypes.string.isRequired
+    })
+  ).isRequired,
   incidents: PropTypes.array
 };
 
-module.exports=App;
+export default App;
