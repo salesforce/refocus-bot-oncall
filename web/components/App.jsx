@@ -154,6 +154,7 @@ class App extends React.Component{
 
   pageGroup(services) {
     if (services.length > ZERO) {
+      const serviceIds = services.map((service) => service.value);
       const serviceReq = {
         'name': 'pagerServices',
         'botId': botName,
@@ -162,7 +163,7 @@ class App extends React.Component{
         'parameters': [
           {
             'name': 'services',
-            'value': services,
+            'value': serviceIds,
           },
           {
             'name': 'message',
