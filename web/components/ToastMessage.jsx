@@ -14,8 +14,8 @@ class ToastMessage extends React.Component{
   constructor(props){
     super(props);
     this.state={
-      message: props.message,
-      show: false,
+      show: true,
+      interval: setInterval(() => this.closeToast(), TIMEOUT)
     };
     this.closeToast=this.closeToast.bind(this);
   }
@@ -27,25 +27,14 @@ class ToastMessage extends React.Component{
     }
   }
 
-  componentDidMount() {
-    this.setState({ message: this.props.message });
-    this.setState({ show: true });
-    this.interval = setInterval(() => this.closeToast(), TIMEOUT);
-  }
-
   componentWillUnmount() {
     clearInterval(this.interval);
   }
 
-  /* eslint-disable react/no-deprecated */
-  componentWillReceiveProps(nextProps) {
-    this.setState({ message: nextProps.message });
-    this.setState({ show: true });
-  }
-
   /* eslint-disable max-len */
   render(){
-    const { message, show } = this.state;
+    const { message } = this.props;
+    const { show } = this.state;
     return (
       <div className={show ? '' : 'slds-hide'} style={{ width: '100%' }}>
         <div className="slds-region_narrow slds-is-relative">

@@ -8,13 +8,13 @@
 
 import PropTypes from 'prop-types';
 import Select from 'react-select';
+import ToastMessage from './ToastMessage.jsx';
 import './overrides.css';
 import isEqual from 'lodash/isEqual';
 import PageInstrumentBuilder from './PageInstrumentBuilder';
 import PageInstrumentStore from './PageInstrumentStore';
 
 const React=require('react');
-const ToastMessage=require('./ToastMessage.jsx');
 const botName = require('../../package.json').name;
 const env = require('../../config.js').env;
 const config = require('../../config.js')[env];
@@ -51,11 +51,8 @@ class App extends React.Component{
 
 
   componentDidUpdate(prevProps) {
-    if (this.props.response) {
-      if (this.state.waiting) {
-        this.setState({ response: this.props.response });
-      }
-      this.setState({ waiting: false });
+    if (this.props.response && this.state.waiting) {
+      this.setState({ response: this.props.response, waiting: false });
     }
     if (prevProps.recommendations.length !== this.props.recommendations.length) {
       this.pageInstrumentBuilder
