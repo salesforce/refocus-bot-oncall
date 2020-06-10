@@ -30,8 +30,9 @@ class ToastMessage extends React.Component {
               <div className="slds-notify__content">
                 <h2 className="slds-text-heading_small">{ message }</h2>
               </div>
-              <button className="slds-button slds-button_icon slds-notify__close slds-button_icon-inverse"
-                onClick={() => this.hide()} title="Close">
+              <button className="slds-button slds-button_icon
+                slds-notify__close slds-button_icon-inverse"
+              onClick={() => this.hide()} title="Close">
                 X
               </button>
             </div>
