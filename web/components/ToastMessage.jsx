@@ -8,35 +8,22 @@
 
 const React=require('react');
 import PropTypes from 'prop-types';
-const TIMEOUT = 3000; // ms
 
-class ToastMessage extends React.Component{
-  constructor(props){
+class ToastMessage extends React.Component {
+  constructor(props) {
     super(props);
-    this.state={
-      show: true,
-      interval: setInterval(() => this.closeToast(), TIMEOUT)
+    this.state = {
+      isHidden: false
     };
-    this.closeToast=this.closeToast.bind(this);
   }
-
-  closeToast(){
-    if (this.props.removeToastHandler) {
-      this.setState({ show: false });
-      this.props.removeToastHandler();
-    }
+  hide() {
+    this.setState({ isHidden: true });
   }
-
-  componentWillUnmount() {
-    clearInterval(this.interval);
-  }
-
-  /* eslint-disable max-len */
-  render(){
+  render() {
     const { message } = this.props;
-    const { show } = this.state;
+    const { isHidden } = this.state;
     return (
-      <div className={show ? '' : 'slds-hide'} style={{ width: '100%' }}>
+      <div className={isHidden ? 'slds-hide' : ''} style={{ width: '100%' }}>
         <div className="slds-region_narrow slds-is-relative">
           <div className="slds-notify_container slds-is-absolute">
             <div className="slds-notify slds-notify_toast slds-theme_info slds-size_3-of-4">
@@ -44,7 +31,7 @@ class ToastMessage extends React.Component{
                 <h2 className="slds-text-heading_small">{ message }</h2>
               </div>
               <button className="slds-button slds-button_icon slds-notify__close slds-button_icon-inverse"
-                onClick={() => this.closeToast()} title="Close">
+                onClick={() => this.hide()} title="Close">
                 X
               </button>
             </div>
@@ -54,7 +41,6 @@ class ToastMessage extends React.Component{
     );
   }
 }
-
 ToastMessage.propTypes={
   message: PropTypes.string,
   removeToastHandler: PropTypes.func,
