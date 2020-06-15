@@ -139,7 +139,8 @@ function handleData(data) {
     handleDataAction(data);
   }
 
-  const incidents = _incidentLogs ? _incidentLogs.incidents : [];
+  const incidents = _incidentLogs && _incidentLogs.value ?
+    JSON.parse(_incidentLogs.value).incidents : [];
   renderUI(currentServices, currentMessage, null, incidents);
 }
 
