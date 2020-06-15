@@ -8,18 +8,19 @@
 
 import PropTypes from 'prop-types';
 import Select from 'react-select';
+import ToastMessage from './ToastMessage.jsx';
 import './overrides.css';
 import isEqual from 'lodash/isEqual';
 import PageInstrumentBuilder from './PageInstrumentBuilder';
 import PageInstrumentStore from './PageInstrumentStore';
 
 const React=require('react');
-const ToastMessage=require('./ToastMessage.jsx');
 const botName = require('../../package.json').name;
 const env = require('../../config.js').env;
 const config = require('../../config.js')[env];
 const bdk = require('@salesforce/refocus-bdk')(config, botName);
 const ZERO = 0;
+const TOAST_TIMEOUT = 3000;
 
 class App extends React.Component{
   constructor(props){
@@ -51,11 +52,10 @@ class App extends React.Component{
 
 
   componentDidUpdate(prevProps) {
-    if (this.props.response) {
-      if (this.state.waiting) {
-        this.setState({ response: this.props.response });
-      }
-      this.setState({ waiting: false });
+    if (this.props.response && this.state.waiting) {
+      this.setState({ response: this.props.response, waiting: false });
+      this.showToast(this.props.response.statusText);
+      setTimeout(this.closeToast, TOAST_TIMEOUT);
     }
     if (prevProps.recommendations.length !== this.props.recommendations.length) {
       this.pageInstrumentBuilder
@@ -63,8 +63,12 @@ class App extends React.Component{
     }
   }
 
+  showToast(message) {
+    this.setState({ toastMessage: message });
+  }
+
   closeToast(){
-    this.setState({ response: null });
+    this.setState({ toastMessage: null });
   }
 
   getRoomCreatedDate() {
@@ -190,7 +194,7 @@ class App extends React.Component{
   }
 
   render(){
-    const { selectedTeams, selectOpen } = this.state;
+    const { selectedTeams, selectOpen, toastMessage } = this.state;
     const { services, incidents, recommendations } = this.props;
     const options = [];
     Object.keys(services).forEach((key) => {
@@ -218,10 +222,9 @@ class App extends React.Component{
           </div>
         ) : (
           <div>
-            { this.state.response &&
+            { toastMessage &&
               <ToastMessage
-                message={ this.state.response.statusText }
-                removeToastHandler={this.closeToast}
+                message={ toastMessage }
               />
             }
             <div className={selectOpen ? `${gridCSS} select-open` : gridCSS}>
