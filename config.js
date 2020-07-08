@@ -31,6 +31,7 @@ module.exports = {
     pdBridgeUrl: process.env.PD_BRIDGE_URL_DEV || null,
     redisCacheHost: process.env.CACHE_REDIS_HOST_DEV || '127.0.0.1',
     redisCachePort: process.env.CACHE_REDIS_PORT_DEV || '6379',
+    redisCachePassword: process.env.CACHE_REDIS_PASSWORD_DEV,
     useRedisCache: process.env.USE_REDIS_CACHE_DEV === 'true' || false,
   },
   sandbox: {
@@ -43,6 +44,7 @@ module.exports = {
     pdBridgeUrl: process.env.PD_BRIDGE_URL_SANDBOX || null,
     redisCacheHost: process.env.CACHE_REDIS_HOST_SANDBOX,
     redisCachePort: process.env.CACHE_REDIS_PORT_SANDBOX,
+    redisCachePassword: process.env.CACHE_REDIS_PASSWORD_SANDBOX,
     useRedisCache: process.env.USE_REDIS_CACHE_SANDBOX === 'true' || false,
   },
   production: {
@@ -55,6 +57,7 @@ module.exports = {
     pdBridgeUrl: process.env.PD_BRIDGE_URL_PROD || null,
     redisCacheHost: process.env.CACHE_REDIS_HOST_PROD,
     redisCachePort: process.env.CACHE_REDIS_PORT_PROD,
+    redisCachePassword: process.env.CACHE_REDIS_PASSWORD_PROD,
     useRedisCache: process.env.USE_REDIS_CACHE_PROD === 'true' || false,
   },
 };
