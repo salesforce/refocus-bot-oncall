@@ -49,17 +49,19 @@ const roomId = bdk.getRoomId();
  * @param {Object} response - Action Response
  * @param {Array} incidentList - List of incidents
  */
-function renderUI(services, message, response, incidentList) {
+function renderUI(services, message, response) {
   const recommendations = currentRecommendations.map(({ label, value }) => {
     return { label, value };
   });
+  const incidents = _incidentLogs && _incidentLogs.value ?
+    JSON.parse(_incidentLogs.value).incidents : [];
   ReactDOM.render(
     <App
       roomId={roomId}
       services={services}
       message={message}
       response={response}
-      incidents={incidentList}
+      incidents={incidents}
       recommendations={recommendations}
     />,
     document.getElementById(botName)
