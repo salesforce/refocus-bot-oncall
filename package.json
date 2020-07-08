@@ -16,7 +16,7 @@
     "test-dev": "nodemon --ext js --watch ./ --exec 'mocha ./test'"
   },
   "dependencies": {
-    "@salesforce/refocus-bdk": "^1.9.1",
+    "@salesforce/refocus-bdk": "^1.10.0",
     "dotenv": "4.0.0",
     "email-validator": "^1.0.7",
     "express": "^4.16.4",
@@ -73,7 +73,7 @@
     "handlebars-loader": "^1.7.1",
     "html-webpack-plugin": "^4.3.0",
     "lodash-webpack-plugin": "^0.11.5",
-    "mocha": "^7.1.2",
+    "mocha": "^8.0.1",
     "nyc": "^15.0.1",
     "sinon": "^2.3.7",
     "style-loader": "^0.18.2",
