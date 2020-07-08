@@ -58,8 +58,10 @@ class App extends React.Component{
       setTimeout(this.closeToast, TOAST_TIMEOUT);
     }
     if (prevProps.recommendations.length !== this.props.recommendations.length) {
+      const recommendationsToSet = this.props.recommendations.map(({ label }) => label);
+      // eslint-disable-next-line no-unused-expressions
       this.pageInstrumentBuilder
-        .setListOfRecommendations(this.props.recommendations.map(({ label }) => label));
+      ?.setListOfRecommendations?.(recommendationsToSet);
     }
   }
 

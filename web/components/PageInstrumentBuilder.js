@@ -23,6 +23,7 @@ class PageInstrumentBuilder {
 
   setListOfRecommendations(newList) {
     this.listOfRecommendations = newList;
+    return this.listOfRecommendations;
   }
 
   setRoomCreatedDate(roomCreatedDate) {
