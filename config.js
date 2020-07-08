@@ -29,15 +29,9 @@ module.exports = {
     pollingDelay: process.env.POLLING_DELAY_DEV || pollingDelay,
     useNewPDBridge: process.env.USE_NEW_PD_BRIDGE_DEV || false,
     pdBridgeUrl: process.env.PD_BRIDGE_URL_DEV || null,
-  },
-  perf: {
-    refocusUrl: process.env.REFOCUS_URL_PERF,
-    refocusRealtimeUrl: process.env.REFOCUS_REALTIME_URL_PERF,
-    recommendationUrl: process.env.RECOMMENDATION_URL_PERF,
-    token: process.env.API_TOKEN_PERF,
-    pollingDelay: process.env.POLLING_DELAY_PERF || pollingDelay,
-    useNewPDBridge: process.env.USE_NEW_PD_BRIDGE_PERF || false,
-    pdBridgeUrl: process.env.PD_BRIDGE_URL_PERF || null,
+    redisCacheHost: process.env.CACHE_REDIS_HOST_DEV || '127.0.0.1',
+    redisCachePort: process.env.CACHE_REDIS_PORT_DEV || '6379',
+    useRedisCache: process.env.USE_REDIS_CACHE_DEV === 'true' || false,
   },
   sandbox: {
     refocusUrl: process.env.REFOCUS_URL_SANDBOX,
@@ -47,6 +41,9 @@ module.exports = {
     pollingDelay: process.env.POLLING_DELAY_SANDBOX || pollingDelay,
     useNewPDBridge: process.env.USE_NEW_PD_BRIDGE_SANDBOX || false,
     pdBridgeUrl: process.env.PD_BRIDGE_URL_SANDBOX || null,
+    redisCacheHost: process.env.CACHE_REDIS_HOST_SANDBOX,
+    redisCachePort: process.env.CACHE_REDIS_PORT_SANDBOX,
+    useRedisCache: process.env.USE_REDIS_CACHE_SANDBOX === 'true' || false,
   },
   production: {
     refocusUrl: process.env.REFOCUS_URL_PROD,
@@ -56,6 +53,9 @@ module.exports = {
     pollingDelay: process.env.POLLING_DELAY_PROD || pollingDelay,
     useNewPDBridge: process.env.USE_NEW_PD_BRIDGE_PROD || false,
     pdBridgeUrl: process.env.PD_BRIDGE_URL_PROD || null,
+    redisCacheHost: process.env.CACHE_REDIS_HOST_PROD,
+    redisCachePort: process.env.CACHE_REDIS_PORT_PROD,
+    useRedisCache: process.env.USE_REDIS_CACHE_PROD === 'true' || false,
   },
 };
 
