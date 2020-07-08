@@ -244,9 +244,7 @@ function handleActions(botAction) {
     if (handleAction) {
       handleAction(botAction);
     } else {
-      const newIncidents = refreshIncidents(botAction);
-      renderUI(currentServices, currentMessage, botAction.detail.response,
-        newIncidents.incidents);
+      refreshIncidents(botAction);
     }
   }
 }

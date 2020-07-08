@@ -31,7 +31,6 @@ class App extends React.Component{
       selectedTeams: [],
       rtl: false,
       waiting: false,
-      incidents: props.incidents ? props.incidents : [],
       selectOpen: false,
     };
 
