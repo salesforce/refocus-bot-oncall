@@ -229,7 +229,7 @@ function refreshIncidents(botAction) {
 
 const handleActionDispatcher = {
   'getServices': getServicesAction,
-  'getRecommendations': getRecommendationsAction,
+  'getRecommendations': getRecommendationsAction
 };
 
 /**
@@ -244,7 +244,9 @@ function handleActions(botAction) {
     if (handleAction) {
       handleAction(botAction);
     } else {
-      refreshIncidents(botAction);
+      const newIncidents = refreshIncidents(botAction);
+      renderUI(currentServices, currentMessage, botAction.detail.response,
+        newIncidents.incidents);
     }
   }
 }
