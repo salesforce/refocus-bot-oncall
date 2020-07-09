@@ -17,7 +17,7 @@ const testTeamData = 'TestTeam';
 const testPdData = {};
 testPdData.body = {};
 
-describe('index.js >', () => {
+describe('tte.js >', () => {
   describe(' createTTE tests', () => {
     it('should return end time null with no acknowledge/resolve_log_entry', () => {
       const expected = {
@@ -69,6 +69,29 @@ describe('index.js >', () => {
         {
           type: 'resolve_log_entry',
           created_at: '2019-09-04T09:16:41Z',
+        }];
+      const tte = createTTE('ab', testTeamData, testPdData);
+      expect(tte).to.deep.equal(expected);
+    });
+    it('should return a single tte if both ack/resolve entry exist', () => {
+      const expected = {
+        id: 'ab',
+        start: '2019-09-04T09:15:41Z',
+        end: '2019-09-04T09:16:41Z',
+        team: 'TestTeam'
+      };
+      testPdData.body.log_entries = [
+        {
+          type: 'notify_log_entry',
+          created_at: '2019-09-04T09:15:41Z',
+        },
+        {
+          type: 'acknowledge_log_entry',
+          created_at: '2019-09-04T09:16:41Z',
+        },
+        {
+          type: 'resolve_log_entry',
+          created_at: '2019-09-04T09:20:41Z',
         }];
       const tte = createTTE('ab', testTeamData, testPdData);
       expect(tte).to.deep.equal(expected);
