@@ -47,19 +47,20 @@ const roomId = bdk.getRoomId();
  * @param {Object} services - Services Selected
  * @param {String} message - Message Response
  * @param {Object} response - Action Response
- * @param {Array} incidentList - List of incidents
  */
-function renderUI(services, message, response, incidentList) {
+function renderUI(services, message, response) {
   const recommendations = currentRecommendations.map(({ label, value }) => {
     return { label, value };
   });
+  const incidents = _incidentLogs && _incidentLogs.value ?
+    JSON.parse(_incidentLogs.value).incidents : [];
   ReactDOM.render(
     <App
       roomId={roomId}
       services={services}
       message={message}
       response={response}
-      incidents={incidentList}
+      incidents={incidents}
       recommendations={recommendations}
     />,
     document.getElementById(botName)
@@ -139,9 +140,7 @@ function handleData(data) {
     handleDataAction(data);
   }
 
-  const incidents = _incidentLogs && _incidentLogs.value ?
-    JSON.parse(_incidentLogs.value).incidents : [];
-  renderUI(currentServices, currentMessage, null, incidents);
+  renderUI(currentServices, currentMessage, null);
 }
 
 /**
@@ -165,10 +164,7 @@ const getServicesAction = (botAction) => {
           );
         }
       }
-      const incidents = _incidentLogs ?
-        JSON.parse(_incidentLogs.value).incidents :
-        [];
-      renderUI(currentServices, currentMessage, null, incidents);
+      renderUI(currentServices, currentMessage, null);
     });
 };
 
@@ -192,10 +188,7 @@ const getRecommendationsAction = (botAction) => {
     bdk.upsertBotData(roomId, botName, 'onCallRecommendations',
       serialize(currentRecommendations));
   }
-  const incidents = _incidentLogs ?
-    JSON.parse(_incidentLogs.value).incidents :
-    [];
-  renderUI(currentServices, currentMessage, null, incidents);
+  renderUI(currentServices, currentMessage, null);
 };
 
 /**
@@ -229,7 +222,7 @@ function refreshIncidents(botAction) {
 
 const handleActionDispatcher = {
   'getServices': getServicesAction,
-  'getRecommendations': getRecommendationsAction,
+  'getRecommendations': getRecommendationsAction
 };
 
 /**
@@ -244,9 +237,8 @@ function handleActions(botAction) {
     if (handleAction) {
       handleAction(botAction);
     } else {
-      const newIncidents = refreshIncidents(botAction);
-      renderUI(currentServices, currentMessage, botAction.detail.response,
-        newIncidents.incidents);
+      refreshIncidents(botAction);
+      renderUI(currentServices, currentMessage, botAction.detail.response);
     }
   }
 }
@@ -330,16 +322,13 @@ function init() {
       }
 
       currentVariables.imcLink = window.location.href;
-      const incidents = _incidentLogs ?
-        JSON.parse(_incidentLogs.value).incidents :
-        [];
       const selTemplate = compile(currentTemplate);
       const unparsedTemp = selTemplate(currentVariables);
       currentMessage = unparsedTemp.toString();
       if (currentVariables !== {}) {
         createActionToGetRecommendations();
       }
-      renderUI(currentServices, currentMessage, null, incidents);
+      renderUI(currentServices, currentMessage, null);
     });
 }
 
