@@ -21,16 +21,25 @@ const ZERO = 0;
  * @returns {Object} - A tte
  */
 function createTTE(id, team, pdData) {
+  if (!pdData || !pdData.body || !pdData.body.log_entries) return null;
+  const entries = pdData.body.log_entries;
+  const notify = entries
+    .filter((entry) => entry.type === 'notify_log_entry')[ZERO];
+  const ack = entries
+    .filter((entry) => entry.type === 'acknowledge_log_entry')[ZERO];
+  const resolve = entries
+    .filter((entry) => entry.type === 'resolve_log_entry')[ZERO];
+
   const tte = {};
-  tte.start = pdData.body.log_entries
-    .filter((entry) => entry.type === 'notify_log_entry')[ZERO]
-    .created_at;
-  const endTime = pdData.body.log_entries
-    .filter((entry) => {
-      return entry.type === 'acknowledge_log_entry' ||
-        entry.type === 'resolve_log_entry';
-    });
-  tte.end = endTime[ZERO] ? endTime[ZERO].created_at : null;
+  tte.start = notify ? notify.created_at : null;
+  if (ack) {
+    tte.end = ack.created_at;
+  } else if (resolve) {
+    tte.end = resolve.created_at;
+  } else {
+    tte.end = null;
+  }
+
   tte.team = team;
   tte.id = id;
   return tte;
