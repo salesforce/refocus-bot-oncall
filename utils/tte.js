@@ -16,8 +16,8 @@ const ZERO = 0;
 
 /**
  * The compare function for sorting PD log entries by created date
- * @param entry1 - log entry 1
- * @param entry2 - log entry 2
+ * @param {Object} entry1 - log entry 1
+ * @param {Object} entry2 - log entry 2
  * @returns {number}
  */
 function compare(entry1, entry2) {
@@ -37,7 +37,8 @@ function compare(entry1, entry2) {
  * @returns {Object} - A tte
  */
 function createTTE(id, team, pdData) {
-  if (!pdData || !pdData.body || !pdData.body.log_entries) return null;
+  // eslint-disable-next-line camelcase
+  if (!pdData?.body?.log_entries) return null;
   const entries = pdData.body.log_entries;
   const notify = entries
     .filter((entry) => entry.type === 'notify_log_entry')[ZERO];
