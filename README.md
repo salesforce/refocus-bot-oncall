@@ -95,3 +95,4 @@ Follows [semantic versioning](https://docs.npmjs.com/getting-started/semantic-ve
 * 1.2.3 Added instrumentation for recommendation model training.
 * 1.2.4 Fixed pageInstrument/incidentLog bugs and added failover support.
 * 1.2.5 TTE definition changed. TTE ends when PD is acknowledged or resolved.
+* 1.2.6 Fix TTE end time gets overridden by latter ack entry when there are multiple ack entries.

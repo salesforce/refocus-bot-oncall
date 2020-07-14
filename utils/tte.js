@@ -11,7 +11,23 @@
  *
  * This code handles will creation of tte from given data
  */
+const moment = require('moment');
 const ZERO = 0;
+
+/**
+ * The compare function for sorting PD log entries by created date
+ * @param entry1 - log entry 1
+ * @param entry2 - log entry 2
+ * @returns {number}
+ */
+function compare(entry1, entry2) {
+  if (moment(entry1.created_at) < moment(entry2.created_at)) {
+    return -1;
+  } else if (moment(entry1.created_at) > moment(entry2.created_at)) {
+    return 1;
+  }
+  return 0;
+}
 
 /**
  * Create TTE
@@ -26,7 +42,8 @@ function createTTE(id, team, pdData) {
   const notify = entries
     .filter((entry) => entry.type === 'notify_log_entry')[ZERO];
   const ack = entries
-    .filter((entry) => entry.type === 'acknowledge_log_entry')[ZERO];
+    .filter((entry) => entry.type === 'acknowledge_log_entry')
+    .sort(compare)[ZERO];
   const resolve = entries
     .filter((entry) => entry.type === 'resolve_log_entry')[ZERO];
 
@@ -46,5 +63,6 @@ function createTTE(id, team, pdData) {
 }
 
 module.exports = {
-  createTTE
+  createTTE,
+  compare,
 };
