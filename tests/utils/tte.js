@@ -136,7 +136,7 @@ describe('tte.js >', () => {
   });
 
   describe('Test Compare function', () => {
-    it('should return end time null with no acknowledge/resolve_log_entry', () => {
+    it('should sort the list of entries by created_at time ascendingly', () => {
       const entries = [
         {
           type: 'acknowledge_log_entry',
