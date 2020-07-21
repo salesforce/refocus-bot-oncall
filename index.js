@@ -19,8 +19,7 @@ const app = express();
 const http = require('http');
 const path = require('path');
 const fs = require('fs');
-const request = require('superagent');
-const { env, pdToken, pdSender, tteToggle } = require('./config.js');
+const { env, tteToggle } = require('./config.js');
 const PORT = require('./config.js').port;
 const config = require('./config.js')[env];
 const { socketToken, recommendationUrl,
@@ -28,9 +27,12 @@ const { socketToken, recommendationUrl,
 const POLLING_DELAY = config.pollingDelay;
 const bdk = require('@salesforce/refocus-bdk')(config);
 const packageJSON = require('./package.json');
-const createTTE = require('./utils/tte.js').createTTE;
+
+const pagerDuty = require('./pagerDuty.js');
+const autoPager = require('./autoPager.js');
 const getRecommendations = require('./utils/recommendations.js')
   .getRecommendations;
+
 const botName = packageJSON.name;
 const DEFAULT_OFFSET = 0;
 const HEAD = 0;
@@ -39,7 +41,6 @@ const SUCCESS_CODE = 201;
 const SERVICES_LIMIT = 100;
 const USING_NEW_PD_BRIDGE = Boolean(useNewPDBridge && pdBridgeUrl);
 const tteRoomUpdateDelay = 500;
-const pagerDutyServicesUrl = 'https://api.pagerduty.com/services';
 let roomsToUpdate = [];
 
 /* eslint-disable func-style */
@@ -51,67 +52,11 @@ let services = [];
 const serviceMap = {};
 
 /**
- * Query PagerDuty for services
- *
- * @param {Integer} offset - Amount of services to offset
- * @returns {Promise} - PagerDuty get service promise
- */
-function pdServices(offset) {
-  // Feature Flag
-  const url = USING_NEW_PD_BRIDGE ? pdBridgeUrl :
-    `${pagerDutyServicesUrl}?limit=100&offset=${offset}`;
-  return new Promise((resolve) => {
-    const req = request
-      .get(url)
-      .timeout({
-        response: 5000, // Wait 5 seconds for the server to start sending,
-        deadline: 30000, // but allow 30 seconds for the file to finish loading.
-      });
-    // Feature Flag
-    if (!USING_NEW_PD_BRIDGE) {
-      req
-        .set('Authorization', `Token token=${pdToken}`)
-        .set('Accept', 'application/vnd.pagerduty+json;version=2');
-    }
-    req
-      .then((res) => {
-        resolve(res);
-      }).catch((error) => {
-        bdk.log.error('pdServices error', error);
-        resolve({
-          body: {
-            more: true
-          }
-        });
-      });
-  });
-}
-
-/**
- * Query PagerDuty for incident details
- *
- * https://api.pagerduty.com/incidents/{id}/log_entries
- *
- * @param {string} id - Incident to query
- * @returns {Promise} - PagerDuty get service promise
- */
-function pdIncidentDetail(id) {
-  return new Promise((resolve) => {
-    request
-      .get(`https://api.pagerduty.com/incidents/${id}/log_entries`)
-      .set('Authorization', `Token token=${pdToken}`)
-      .set('Accept', 'application/vnd.pagerduty+json;version=2')
-      .then((res) => resolve(res))
-      .catch((error) => bdk.log.error('pdIncidentDetail error', error));
-  });
-}
-
-/**
  * @param {Integer} offset - Amount of services to offset
  * @returns {Object} - All the services from PagerDuty
  */
 function getServices(offset) {
-  return pdServices(offset).then((result) => {
+  return pagerDuty.getServices(offset).then((result) => {
     if (!result.body) return {};
     // Feature Flag
     const resBody = USING_NEW_PD_BRIDGE ? result.body : result.body.services;
@@ -134,73 +79,6 @@ function getServices(offset) {
     });
 
     return serviceMap;
-  });
-}
-
-/**
- * Get all incident timestamps
- *
- * @param {Array} pdData - list of pagerduty data
- * @returns {Array} - All the ttes
- */
-function getIncidents(pdData) {
-  const tteList = [];
-  return new Promise((resolve) => {
-    // eslint-disable-next-line consistent-return
-    Promise.all(pdData.map((obj) => {
-      if (obj.incident) {
-        return pdIncidentDetail(obj.incident.id).then((result) => {
-          if (result.body) {
-            tteList.push(createTTE(obj.incident.id,
-              obj.service.summary, result));
-          }
-        });
-      }
-    })).then(() => resolve(tteList))
-      .catch((err) => bdk.log.error(err));
-  });
-}
-
-/**
- * Create PagerDuty Trigger Event
- *
- * @param {String} group - Action Object
- * @param {String} message - Salesforce Query
- * @param {Integer} room - Room Id
- * @returns {Promise} - PagerDuty trigger promise
- */
-function pdTriggerEvent(group, message, room) {
-  const obj =
-    {
-      'incident':
-        {
-          'type': 'incident',
-          'title': message,
-          'service':
-            {
-              'id': group,
-              'type': 'service_reference'
-            },
-          'body':
-            {
-              'type': 'incident_body',
-              'details': message,
-              'roomId': room
-            }
-        }
-    };
-
-  return new Promise((resolve) => {
-    request
-      .post('https://api.pagerduty.com/incidents')
-      .send(obj)
-      .set('Authorization', `Token token=${pdToken}`)
-      .set('Accept', 'application/vnd.pagerduty+json;version=2')
-      .set('From', pdSender)
-      .then((res) => {
-        resolve(res);
-      }).catch((error) => bdk.log.error(
-        'pdTriggerEvent error', error));
   });
 }
 
@@ -257,6 +135,10 @@ function handleData(data) {
     const roomId = data.roomId;
     const newRoom = { roomId, botId: botName };
     roomsToUpdate.push(newRoom);
+  } else if (data.name === 'onCallBotData') {
+    const casePriority = JSON.parse(data.value)?.casePriority;
+    if (!casePriority) return;
+    autoPager.autoPageTeams(data, casePriority);
   }
 }
 
@@ -346,7 +228,7 @@ function updateActiveRoomIncidents() {
             if (data.body && data.body[HEAD]) {
               const parsedData = JSON.parse(data.body[HEAD].value);
               const pdData = parsedData.incidents;
-              getIncidents(pdData).then((tteList) => {
+              pagerDuty.sgetIncidents(pdData).then((tteList) => {
                 bdk.upsertBotData(
                   obj.roomId,
                   obj.botId,
@@ -388,7 +270,7 @@ const pageServicesAction = (action) => {
     const pdIncidents = [];
     selectedServices.value
       .forEach((service) => {
-        pdIncidents.push(pdTriggerEvent(service, message, action.roomId));
+        pdIncidents.push(pagerDuty.triggerEvent(service, message, action.roomId));
       });
     Promise.all(pdIncidents)
       .then((incidents) => {
