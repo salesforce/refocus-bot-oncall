@@ -14,7 +14,6 @@ function logInvalidargs(name, returnValue) {
   return returnValue;
 }
 
-
 /**
  * @param {number} roomId
  * @param {string} botId
@@ -22,12 +21,19 @@ function logInvalidargs(name, returnValue) {
  */
 async function getIncidentsForRoom(roomId, botId) {
   const incidents = await bdk.getBotData(roomId, botId, 'onCallIncidents');
-  return incidents.body;
+  if (!incidents?.body?.[0].value) return [];
+  try {
+    const parsedIncidents = JSON.parse(incidents.body[0].value)?.incidents;
+    return parsedIncidents;
+  } catch (e) {
+    bdk.log.error(`Room ${roomId} - Failed to parse incidents when autopaging.`, e);
+    return undefined;
+  }
 }
 
 /**
  * @param {string} roomId
- * @returns {object} - teams to autoPage from room settings
+ * @returns {Array<object>} - teams to autoPage from room settings
  */
 async function getTeamsToAutoPage(roomId) {
   const room = await bdk.getRoomById(roomId);
@@ -41,7 +47,7 @@ async function getTeamsToAutoPage(roomId) {
  * @returns {Array<Team>} - list of teams from teamsToPage which have not been already paged.
  */
 function removeAlreadyPagedTeams(incidentList, teamsToPage) {
-  if (!incidentList?.length || !teamsToPage?.length)
+  if (!incidentList || !teamsToPage?.length)
     return logInvalidargs('removeAlreadyPagedTeams', []);
   const pagedTeams = incidentList.map((incident) => incident.service.id);
   return teamsToPage.filter((team) => !pagedTeams.includes(team.id));
@@ -53,12 +59,12 @@ function removeAlreadyPagedTeams(incidentList, teamsToPage) {
  * @returns {Array<Team>} - array of teams which have the matching severity.
  */
 function removeTeamsWithoutMatchingSeverity(teams, severity) {
-  if (!teams?.length)
+  if (!teams)
     return logInvalidargs('removeTeamsWithoutMatchingSeverity', []);
   teams.forEach((team) => {
     team.severities = team.severities.map((sev) => sev.toLowerCase());
   });
-  return teams.filter((team) => team.severities.includes(severity));
+  return teams.filter((team) => team.severities.includes(severity.toLowerCase()));
 }
 
 /**
