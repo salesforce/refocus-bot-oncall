@@ -56,7 +56,7 @@ const serviceMap = {};
  * @returns {Object} - All the services from PagerDuty
  */
 function getServices(offset) {
-  return pagerDuty.getServices(offset).then((result) => {
+  return pagerDuty.queryServices(offset).then((result) => {
     if (!result.body) return {};
     // Feature Flag
     const resBody = USING_NEW_PD_BRIDGE ? result.body : result.body.services;
