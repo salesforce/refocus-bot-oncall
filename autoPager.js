@@ -33,14 +33,13 @@ function logInvalidargs(name, returnValue) {
 /**
  * @param {number} roomId
  * @param {string} botId
- * @returns {Array<Incident>}
+ * @returns {Array<Incident> | undefined}
  */
 async function getIncidentsForRoom(roomId, botId) {
   const incidents = await bdk.getBotData(roomId, botId, 'onCallIncidents');
   if (!incidents?.body?.[0].value) return [];
   try {
-    const parsedIncidents = JSON.parse(incidents.body[0].value)?.incidents;
-    return parsedIncidents;
+    return JSON.parse(incidents.body[0].value)?.incidents;
   } catch (e) {
     bdk.log.error(`Room ${roomId} - Failed to parse incidents when autopaging.`, e);
     return undefined;
@@ -53,8 +52,7 @@ async function getIncidentsForRoom(roomId, botId) {
  */
 async function getTeamsToAutoPage(roomId) {
   const room = await bdk.getRoomById(roomId);
-  const teams = room?.settings?.autoPageTeams;
-  return teams;
+  return room?.settings?.autoPageTeams;
 }
 
 /**
@@ -63,8 +61,7 @@ async function getTeamsToAutoPage(roomId) {
  * @returns {Array<Team>} - list of teams from teamsToPage which have not been already paged.
  */
 function removeAlreadyPagedTeams(incidentList, teamsToPage) {
-  if (!incidentList || !teamsToPage?.length)
-    return logInvalidargs('removeAlreadyPagedTeams', []);
+  if (!incidentList || !teamsToPage?.length) return logInvalidargs('removeAlreadyPagedTeams', []);
   const pagedTeams = incidentList.map((incident) => incident.service.id);
   return teamsToPage.filter((team) => !pagedTeams.includes(team.id));
 }
@@ -75,8 +72,7 @@ function removeAlreadyPagedTeams(incidentList, teamsToPage) {
  * @returns {Array<Team>} - array of teams which have the matching severity.
  */
 function removeTeamsWithoutMatchingSeverity(teams, severity) {
-  if (!teams)
-    return logInvalidargs('removeTeamsWithoutMatchingSeverity', []);
+  if (!teams) return logInvalidargs('removeTeamsWithoutMatchingSeverity', []);
   teams.forEach((team) => {
     team.severities = team.severities.map((sev) => sev.toLowerCase());
   });
@@ -104,7 +100,7 @@ async function getPagerAlertMessage(botData) {
  * @param {object} botData - onCallBotData object.
  * @param {string} severity - current severity of case.
  */
-async function autoPageTeams(botData, severity) {
+async function pageTeams(botData, severity) {
   const { roomId, botId } = botData;
   const incidentList = await getIncidentsForRoom(roomId, botId);
   const teamsToAutoPageFromRoomType = await getTeamsToAutoPage(roomId);
@@ -124,5 +120,5 @@ module.exports = {
   getTeamsToAutoPage,
   removeAlreadyPagedTeams,
   removeTeamsWithoutMatchingSeverity,
-  autoPageTeams,
+  pageTeams,
 };

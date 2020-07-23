@@ -138,7 +138,7 @@ function handleData(data) {
   } else if (data.name === 'onCallBotData') {
     const casePriority = JSON.parse(data.value)?.casePriority;
     if (!casePriority) return;
-    autoPager.autoPageTeams(data, casePriority);
+    autoPager.pageTeams(data, casePriority);
   }
 }
 
@@ -228,7 +228,7 @@ function updateActiveRoomIncidents() {
             if (data.body && data.body[HEAD]) {
               const parsedData = JSON.parse(data.body[HEAD].value);
               const pdData = parsedData.incidents;
-              pagerDuty.sgetIncidents(pdData).then((tteList) => {
+              pagerDuty.getIncidents(pdData).then((tteList) => {
                 bdk.upsertBotData(
                   obj.roomId,
                   obj.botId,

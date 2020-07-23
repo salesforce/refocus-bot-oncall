@@ -20,8 +20,7 @@ const createTTE = require('./utils/tte.js').createTTE;
 
 const { useNewPDBridge, pdBridgeUrl } = config;
 const USING_NEW_PD_BRIDGE = Boolean(useNewPDBridge && pdBridgeUrl);
-const pagerDutyServicesUrl = 'https://api.pagerduty.com/services';
-
+const PD_URL = 'https://api.pagerduty.com';
 
 /**
  * Create PagerDuty Trigger Event
@@ -54,7 +53,7 @@ function triggerEvent(group, message, room) {
 
   return new Promise((resolve) => {
     request
-      .post('https://api.pagerduty.com/incidents')
+      .post(`${PD_URL}/incidents`)
       .send(obj)
       .set('Authorization', `Token token=${pdToken}`)
       .set('Accept', 'application/vnd.pagerduty+json;version=2')
@@ -75,7 +74,7 @@ function triggerEvent(group, message, room) {
 function queryServices(offset) {
   // Feature Flag
   const url = USING_NEW_PD_BRIDGE ? pdBridgeUrl :
-    `${pagerDutyServicesUrl}?limit=100&offset=${offset}`;
+    `${PD_URL}/services?limit=100&offset=${offset}`;
   return new Promise((resolve) => {
     const req = request
       .get(url)
@@ -114,7 +113,7 @@ function queryServices(offset) {
 function getIncidentDetail(id) {
   return new Promise((resolve) => {
     request
-      .get(`https://api.pagerduty.com/incidents/${id}/log_entries`)
+      .get(`${PD_URL}/incidents/${id}/log_entries`)
       .set('Authorization', `Token token=${pdToken}`)
       .set('Accept', 'application/vnd.pagerduty+json;version=2')
       .then((res) => resolve(res))
