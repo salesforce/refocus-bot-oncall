@@ -25,7 +25,7 @@ const pagerDuty = require('./pagerDuty.js');
  * @param {any} returnValue - value to be returned after logging.
  * @returns {any} - whatever was passed as the returnsValue param.
  */
-function logInvalidargs(name, returnValue) {
+function logInvalidArgs(name, returnValue) {
   bdk.log.error(`Invalid args passed to function ${name}`);
   return returnValue;
 }
@@ -61,7 +61,7 @@ async function getTeamsToAutoPage(roomId) {
  * @returns {Array<Team>} - list of teams from teamsToPage which have not been already paged.
  */
 function removeAlreadyPagedTeams(incidentList, teamsToPage) {
-  if (!incidentList || !teamsToPage?.length) return logInvalidargs('removeAlreadyPagedTeams', []);
+  if (!incidentList || !teamsToPage?.length) return logInvalidArgs('removeAlreadyPagedTeams', []);
   const pagedTeams = incidentList.map((incident) => incident.service.id);
   return teamsToPage.filter((team) => !pagedTeams.includes(team.id));
 }
@@ -72,7 +72,7 @@ function removeAlreadyPagedTeams(incidentList, teamsToPage) {
  * @returns {Array<Team>} - array of teams which have the matching severity.
  */
 function removeTeamsWithoutMatchingSeverity(teams, severity) {
-  if (!teams) return logInvalidargs('removeTeamsWithoutMatchingSeverity', []);
+  if (!teams) return logInvalidArgs('removeTeamsWithoutMatchingSeverity', []);
   teams.forEach((team) => {
     team.severities = team.severities.map((sev) => sev.toLowerCase());
   });
@@ -115,7 +115,7 @@ async function pageTeams(botData, severity) {
 }
 
 module.exports = {
-  logInvalidargs,
+  logInvalidArgs,
   getIncidentsForRoom,
   getTeamsToAutoPage,
   removeAlreadyPagedTeams,
