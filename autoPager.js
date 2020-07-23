@@ -1,3 +1,19 @@
+/**
+ * Copyright (c) 2020, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or
+ * https://opensource.org/licenses/BSD-3-Clause
+ */
+
+/**
+ * ./autoPager.js
+ *
+ *  This code handles the process of determining
+ *  whether or not to auto-page any teams when onCallBotData
+ *  is updated.
+ */
+
 const { env } = require('./config.js');
 const { compile } = require('handlebars');
 const config = require('./config.js')[env];
