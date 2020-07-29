@@ -101,6 +101,35 @@ describe('tte.js >', () => {
       expect(tte).to.deep.equal(expected);
     });
 
+    it('should return tte with start time of the first notify entry ' +
+    'if multiple notify entries exist', () => {
+      const expected = {
+        id: 'ab',
+        start: '2019-09-04T09:00:00Z',
+        end: '2019-09-04T09:20:00Z',
+        team: 'TestTeam'
+      };
+      testPdData.body.log_entries = [
+        {
+          type: 'notify_log_entry',
+          created_at: '2019-09-04T09:15:00Z',
+        },
+        {
+          type: 'notify_log_entry',
+          created_at: '2019-09-04T09:00:00Z',
+        },
+        {
+          type: 'notify_log_entry',
+          created_at: '2019-09-04T09:10:00Z',
+        },
+        {
+          type: 'resolve_log_entry',
+          created_at: '2019-09-04T09:20:00Z',
+        }];
+      const tte = createTTE('ab', testTeamData, testPdData);
+      expect(tte).to.deep.equal(expected);
+    });
+
     it('should return tte with end time of the first ack entry ' +
       'if multiple ack entries exist', () => {
       const expected = {
