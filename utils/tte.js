@@ -41,14 +41,12 @@ function createTTE(id, team, pdData) {
   if (!pdData?.body?.log_entries) return null;
   const entries = pdData.body.log_entries;
   const notify = entries
-    .filter((entry) => entry.type === 'notify_log_entry')
-    .sort(compare)[ZERO];
+    .filter((entry) => entry.type === 'notify_log_entry')[ZERO];
   const ack = entries
     .filter((entry) => entry.type === 'acknowledge_log_entry')
     .sort(compare)[ZERO];
   const resolve = entries
-    .filter((entry) => entry.type === 'resolve_log_entry')
-    .sort(compare)[ZERO];
+    .filter((entry) => entry.type === 'resolve_log_entry')[ZERO];
 
   const tte = {};
   tte.start = notify ? notify.created_at : null;
