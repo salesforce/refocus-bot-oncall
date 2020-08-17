@@ -22,14 +22,13 @@ const fs = require('fs');
 const { env, tteToggle } = require('./config.js');
 const PORT = require('./config.js').port;
 const config = require('./config.js')[env];
-const { socketToken, recommendationUrl,
-  useNewPDBridge, pdBridgeUrl } = config;
+const { socketToken, recommendationUrl, useNewPDBridge, pdBridgeUrl } = config;
 const POLLING_DELAY = config.pollingDelay;
 const bdk = require('@salesforce/refocus-bdk')(config);
 const packageJSON = require('./package.json');
 
-const pagerDuty = require('./pagerDuty.js');
-const autoPager = require('./autoPager.js');
+const pagerDuty = require('./utils/pagerDuty.js');
+const autoPager = require('./utils/autoPager.js');
 const getRecommendations = require('./utils/recommendations.js')
   .getRecommendations;
 
@@ -45,7 +44,8 @@ let roomsToUpdate = [];
 
 /* eslint-disable func-style */
 
-bdk.installOrUpdateBot(packageJSON)
+bdk
+  .installOrUpdateBot(packageJSON)
   .then(() => bdk.refocusConnect(app, socketToken, packageJSON.name));
 
 let services = [];
@@ -89,13 +89,17 @@ function getServices(offset) {
  */
 function updateLocalRoomData() {
   return new Promise((resolve, reject) => {
-    fs.writeFile('activeRooms.json',
-      JSON.stringify(roomsToUpdate), 'utf8', (err) => {
+    fs.writeFile(
+      'activeRooms.json',
+      JSON.stringify(roomsToUpdate),
+      'utf8',
+      (err) => {
         if (err) {
           reject(err);
         }
         resolve();
-      });
+      }
+    );
   });
 }
 
@@ -107,18 +111,21 @@ function updateLocalRoomData() {
 function handleEvents(event) {
   bdk.log.debug('Event Activity', event.roomId);
   if (event.context.type === 'RoomState') {
-    const roomIsBeingPolled = roomsToUpdate
-      .filter((room) => room.roomId === event.roomId).length > ZERO;
+    const roomIsBeingPolled =
+      roomsToUpdate.filter((room) => room.roomId === event.roomId).length >
+      ZERO;
 
     if (event.context.active && !roomIsBeingPolled) {
       const newRoom = { roomId: event.roomId, botId: botName };
       roomsToUpdate.push(newRoom);
-    } else if (!event.context.active && roomIsBeingPolled){
-      roomsToUpdate = roomsToUpdate
-        .filter((room) => room.roomId !== event.roomId);
+    } else if (!event.context.active && roomIsBeingPolled) {
+      roomsToUpdate = roomsToUpdate.filter(
+        (room) => room.roomId !== event.roomId
+      );
     }
-    updateLocalRoomData()
-      .catch((error) => bdk.log.error('updateLocalRoomData', error));
+    updateLocalRoomData().catch((error) =>
+      bdk.log.error('updateLocalRoomData', error)
+    );
   }
 }
 
@@ -128,8 +135,7 @@ function handleEvents(event) {
  * @param {Object} data - Bot Data object that was dispatched
  */
 function handleData(data) {
-  bdk.log.debug('Bot Data Activity',
-    data.new ? data.new.name : data.name);
+  bdk.log.debug('Bot Data Activity', data.new ? data.new.name : data.name);
 
   if (data.name === 'onCallIncidents') {
     const roomId = data.roomId;
@@ -150,23 +156,23 @@ function handleData(data) {
  */
 function updateActiveRoomsList(roomInfo) {
   let isActive = false;
-  const alreadyInList = roomsToUpdate
-    .filter((room) => room.roomId === roomInfo.roomId).length > DEFAULT_OFFSET;
-  bdk.findRoom(roomInfo.roomId)
-    .then((res) => {
-      isActive = res.body.active;
-      if (isActive && !alreadyInList) {
-        const newRoom = { roomId: roomInfo.roomId, botId: botName };
-        roomsToUpdate.push(newRoom);
-        try {
-          updateLocalRoomData().catch((err) => {
-            throw err;
-          });
-        } catch (error) {
-          bdk.log.error(error);
-        }
+  const alreadyInList =
+    roomsToUpdate.filter((room) => room.roomId === roomInfo.roomId).length >
+    DEFAULT_OFFSET;
+  bdk.findRoom(roomInfo.roomId).then((res) => {
+    isActive = res.body.active;
+    if (isActive && !alreadyInList) {
+      const newRoom = { roomId: roomInfo.roomId, botId: botName };
+      roomsToUpdate.push(newRoom);
+      try {
+        updateLocalRoomData().catch((err) => {
+          throw err;
+        });
+      } catch (error) {
+        bdk.log.error(error);
       }
-    });
+    }
+  });
 }
 
 /**
@@ -179,7 +185,7 @@ function storeActiveRoomsOnStart() {
       if (room.bots.includes(botName)) {
         const roomInfo = {
           roomId: room.id,
-          botId: botName
+          botId: botName,
         };
         updateActiveRoomsList(roomInfo);
       }
@@ -209,8 +215,9 @@ function readActiveRoomsFile() {
           }
         }
         roomsToUpdate = newRoomsToUpdate;
-        updateLocalRoomData()
-          .catch((error) => bdk.log.error('updateLocalRoomData', error));
+        updateLocalRoomData().catch((error) =>
+          bdk.log.error('updateLocalRoomData', error)
+        );
       });
     }
   });
@@ -220,28 +227,31 @@ function readActiveRoomsFile() {
  * Refreshes the saved incidents of the currently active rooms
  */
 function updateActiveRoomIncidents() {
-  Promise.all(roomsToUpdate.map((obj) => {
-    if (obj.roomId && obj.botId) {
-      setTimeout(() => {
-        bdk.getBotData(obj.roomId, obj.botId, 'onCallIncidents')
-          .then((data) => {
-            if (data.body && data.body[HEAD]) {
-              const parsedData = JSON.parse(data.body[HEAD].value);
-              const pdData = parsedData.incidents;
-              pagerDuty.getIncidents(pdData).then((tteList) => {
-                bdk.upsertBotData(
-                  obj.roomId,
-                  obj.botId,
-                  'onCallTTx',
-                  { tte: tteList }
-                ).catch((error) => bdk.log
-                  .error('updateActiveRoomIncidents', error));
-              });
-            }
-          });
-      }, tteRoomUpdateDelay);
-    }
-  }));
+  Promise.all(
+    roomsToUpdate.map((obj) => {
+      if (obj.roomId && obj.botId) {
+        setTimeout(() => {
+          bdk
+            .getBotData(obj.roomId, obj.botId, 'onCallIncidents')
+            .then((data) => {
+              if (data.body && data.body[HEAD]) {
+                const parsedData = JSON.parse(data.body[HEAD].value);
+                const pdData = parsedData.incidents;
+                pagerDuty.getIncidents(pdData).then((tteList) => {
+                  bdk
+                    .upsertBotData(obj.roomId, obj.botId, 'onCallTTx', {
+                      tte: tteList,
+                    })
+                    .catch((error) =>
+                      bdk.log.error('updateActiveRoomIncidents', error)
+                    );
+                });
+              }
+            });
+        }, tteRoomUpdateDelay);
+      }
+    })
+  );
 }
 
 /**
@@ -261,76 +271,76 @@ const pageServicesAction = (action) => {
   if (!action.response && action.isPending) {
     const id = action.id;
     const params = action.parameters;
-    const selectedServices = params.filter((param) =>
-      param.name === 'services')[HEAD];
-    const message = params.filter((param) =>
-      param.name === 'message')[HEAD].value;
+    const selectedServices = params.filter(
+      (param) => param.name === 'services'
+    )[HEAD];
+    const message = params.filter((param) => param.name === 'message')[HEAD]
+      .value;
     const response = {};
     const incidentList = [];
     const pdIncidents = [];
-    selectedServices.value
-      .forEach((service) => {
-        pdIncidents.push(pagerDuty.triggerEvent(service, message, action.roomId));
+    selectedServices.value.forEach((service) => {
+      pdIncidents.push(pagerDuty.triggerEvent(service, message, action.roomId));
+    });
+    Promise.all(pdIncidents).then((incidents) => {
+      incidents.forEach((res) => {
+        if (res.statusCode === SUCCESS_CODE) {
+          successfullyPaged.push(res.body.incident.service.summary);
+        } else if (res.body.incident) {
+          unsuccessfullyPaged.push(res.body.incident.service.summary);
+        } else if (res.body.error) {
+          res.body.error.errors.forEach((error, i) => {
+            if (i === HEAD) {
+              responseText += error;
+            } else {
+              responseText += `, ${error}`;
+            }
+          });
+        }
+
+        if (res.body.incident) {
+          bdk.log.info('Successfully Paged:', res.body.incident.service);
+          bdk.log.info('Incident Id:', res.body.incident.id);
+          incidentList.push({
+            incident: {
+              id: res.body.incident.id,
+              url: res.body.incident.html_url,
+              number: res.body.incident.incident_number,
+            },
+            service: res.body.incident.service,
+            assignment: res.body.incident.assignments,
+          });
+        }
       });
-    Promise.all(pdIncidents)
-      .then((incidents) => {
-        incidents.forEach((res) => {
-          if (res.statusCode === SUCCESS_CODE) {
-            successfullyPaged.push(res.body.incident.service.summary);
-          } else if (res.body.incident) {
-            unsuccessfullyPaged.push(res.body.incident.service.summary);
-          } else if (res.body.error) {
-            res.body.error.errors.forEach((error, i) => {
-              if (i === HEAD) {
-                responseText += error;
-              } else {
-                responseText += `, ${error}`;
-              }
-            });
-          }
 
-          if (res.body.incident) {
-            bdk.log.info('Successfully Paged:', res.body.incident.service);
-            bdk.log.info('Incident Id:', res.body.incident.id);
-            incidentList.push({
-              'incident': {
-                'id': res.body.incident.id,
-                'url': res.body.incident.html_url,
-                'number': res.body.incident.incident_number,
-              },
-              'service': res.body.incident.service,
-              'assignment': res.body.incident.assignments,
-            });
-          }
-        });
-
-        successfullyPaged.forEach((serviceName, i) => {
-          if (i === DEFAULT_OFFSET) {
-            responseText += `Successfully Paged: ${serviceName}`;
-          } else {
-            responseText += `, ${serviceName}`;
-          }
-        });
-
-        unsuccessfullyPaged.forEach((serviceName, i) => {
-          if (i === DEFAULT_OFFSET) {
-            responseText += ` Failed to Page: ${serviceName}`;
-          } else {
-            responseText += `, ${serviceName}`;
-          }
-        });
-
-        response.statusText = responseText;
-        response.incidents = incidentList;
-        const eventLog = {
-          'log': packageJSON.name + ' has ' + responseText,
-          'context': {
-            'type': 'Event',
-          },
-        };
-        bdk.respondBotAction(id, response, eventLog, null)
-          .catch((error) => bdk.log.error('respondBotAction', error));
+      successfullyPaged.forEach((serviceName, i) => {
+        if (i === DEFAULT_OFFSET) {
+          responseText += `Successfully Paged: ${serviceName}`;
+        } else {
+          responseText += `, ${serviceName}`;
+        }
       });
+
+      unsuccessfullyPaged.forEach((serviceName, i) => {
+        if (i === DEFAULT_OFFSET) {
+          responseText += ` Failed to Page: ${serviceName}`;
+        } else {
+          responseText += `, ${serviceName}`;
+        }
+      });
+
+      response.statusText = responseText;
+      response.incidents = incidentList;
+      const eventLog = {
+        log: packageJSON.name + ' has ' + responseText,
+        context: {
+          type: 'Event',
+        },
+      };
+      bdk
+        .respondBotAction(id, response, eventLog, null)
+        .catch((error) => bdk.log.error('respondBotAction', error));
+    });
   }
 };
 
@@ -338,17 +348,20 @@ const getRecommendationsAction = (action) => {
   if (!action.response && action.isPending) {
     const id = action.id;
     const params = action.parameters;
-    const caseData = params
-      .filter((param) => param.name === 'caseData')[HEAD].value;
+    const caseData = params.filter((param) => param.name === 'caseData')[HEAD]
+      .value;
     if (recommendationUrl) {
       const parsedData = JSON.parse(caseData);
-      getRecommendations(recommendationUrl, parsedData)
-        .then((recommendations) => {
-          bdk.respondBotActionNoLog(id, { recommendations })
+      getRecommendations(recommendationUrl, parsedData).then(
+        (recommendations) => {
+          bdk
+            .respondBotActionNoLog(id, { recommendations })
             .catch((error) => bdk.log.error('respondBotActionNoLog', error));
-        });
+        }
+      );
     } else {
-      bdk.respondBotActionNoLog(id, { error: 'recommendationUrl not set' })
+      bdk
+        .respondBotActionNoLog(id, { error: 'recommendationUrl not set' })
         .catch((error) => bdk.log.error('respondBotActionNoLog', error));
     }
   }
@@ -358,16 +371,17 @@ const getServicesAction = (action) => {
   if (!action.response && action.isPending) {
     const id = action.id;
     getServices(DEFAULT_OFFSET).then((result) => {
-      bdk.respondBotActionNoLog(id, result)
+      bdk
+        .respondBotActionNoLog(id, result)
         .catch((error) => bdk.log.error('respondBotActionNoLog', error));
     });
   }
 };
 
 const handleActionsDispatcher = {
-  'pagerServices': pageServicesAction,
-  'getRecommendations': getRecommendationsAction,
-  'getServices': getServicesAction,
+  pagerServices: pageServicesAction,
+  getRecommendations: getRecommendationsAction,
+  getServices: getServicesAction,
 };
 
 /**
@@ -376,8 +390,10 @@ const handleActionsDispatcher = {
  * @param {Object} action - Bot Action object that was dispatched
  */
 function handleActions(action) {
-  bdk.log
-    .info('Bot Action Activity', action.new ? action.new.name : action.name);
+  bdk.log.info(
+    'Bot Action Activity',
+    action.new ? action.new.name : action.name
+  );
 
   const handler = handleActionsDispatcher[action.name];
   if (handler) handler(action);

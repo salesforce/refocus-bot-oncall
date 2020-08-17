@@ -14,21 +14,15 @@
  *  is updated.
  */
 
-const { env } = require('./config.js');
+const { env } = require('../config.js');
 const { compile } = require('handlebars');
-const config = require('./config.js')[env];
+const config = require('../config.js')[env];
 const bdk = require('@salesforce/refocus-bdk')(config);
 const pagerDuty = require('./pagerDuty.js');
-
-/**
- * @param {string} name - name of function where error occurred.
- * @param {any} returnValue - value to be returned after logging.
- * @returns {any} - whatever was passed as the returnsValue param.
- */
-function logInvalidArgs(name, returnValue) {
-  bdk.log.error(`Invalid args passed to function ${name}`);
-  return returnValue;
-}
+const {
+  removeAlreadyPagedTeams,
+  removeTeamsWithoutMatchingSeverity
+} = require('./pageTeamsFilterFunctions.js');
 
 /**
  * @param {number} roomId
@@ -41,7 +35,10 @@ async function getIncidentsForRoom(roomId, botId) {
   try {
     return JSON.parse(incidents.body[0].value)?.incidents;
   } catch (e) {
-    bdk.log.error(`Room ${roomId} - Failed to parse incidents when autopaging.`, e);
+    bdk.log.error(
+      `Room ${roomId} - Failed to parse incidents when autopaging.`,
+      e
+    );
     return undefined;
   }
 }
@@ -56,37 +53,17 @@ async function getTeamsToAutoPage(roomId) {
 }
 
 /**
- * @param {Array<Incident>} incidentList - list of pager incidents that have already occurred.
- * @param {Array<Team>} teamsToPage - list of teams to autopage, from room settings.
- * @returns {Array<Team>} - list of teams from teamsToPage which have not been already paged.
- */
-function removeAlreadyPagedTeams(incidentList, teamsToPage) {
-  if (!incidentList || !teamsToPage?.length) return logInvalidArgs('removeAlreadyPagedTeams', []);
-  const pagedTeams = incidentList.map((incident) => incident.service.id);
-  return teamsToPage.filter((team) => !pagedTeams.includes(team.id));
-}
-
-/**
- * @param {Array<Team>} teams - list of teams to autopage, from room settings.
- * @param {string} severity - current severity of room.
- * @returns {Array<Team>} - array of teams which have the matching severity.
- */
-function removeTeamsWithoutMatchingSeverity(teams, severity) {
-  if (!teams) return logInvalidArgs('removeTeamsWithoutMatchingSeverity', []);
-  teams.forEach((team) => {
-    team.severities = team.severities.map((sev) => sev.toLowerCase());
-  });
-  return teams.filter((team) => team.severities.includes(severity.toLowerCase()));
-}
-
-/**
  *
  * @param {object} botData - onCallBotData object.
  * @returns {string} - message to be sent with page alert.
  */
 async function getPagerAlertMessage(botData) {
   const { roomId, botId } = botData;
-  const pageMessageBotData = await bdk.getBotData(roomId, botId, 'onCallBotTemplate');
+  const pageMessageBotData = await bdk.getBotData(
+    roomId,
+    botId,
+    'onCallBotTemplate'
+  );
   const pageMessage = pageMessageBotData.body?.[0]?.value;
   if (!pageMessage) return '';
   const caseVariables = JSON.parse(botData.value);
@@ -105,8 +82,14 @@ async function pageTeams(botData, severity) {
   const incidentList = await getIncidentsForRoom(roomId, botId);
   const teamsToAutoPageFromRoomType = await getTeamsToAutoPage(roomId);
   if (!teamsToAutoPageFromRoomType?.length) return;
-  const notYetPagedTeams = removeAlreadyPagedTeams(incidentList, teamsToAutoPageFromRoomType);
-  const teamsToPage = removeTeamsWithoutMatchingSeverity(notYetPagedTeams, severity);
+  const notYetPagedTeams = removeAlreadyPagedTeams(
+    incidentList,
+    teamsToAutoPageFromRoomType
+  );
+  const teamsToPage = removeTeamsWithoutMatchingSeverity(
+    notYetPagedTeams,
+    severity
+  );
   const pageMessage = await getPagerAlertMessage(botData);
   bdk.log.info(`Room ${roomId} - auto paging ${JSON.stringify(teamsToPage)}`);
   teamsToPage.forEach((team) => {
@@ -115,10 +98,7 @@ async function pageTeams(botData, severity) {
 }
 
 module.exports = {
-  logInvalidArgs,
   getIncidentsForRoom,
   getTeamsToAutoPage,
-  removeAlreadyPagedTeams,
-  removeTeamsWithoutMatchingSeverity,
   pageTeams,
 };

@@ -12,11 +12,11 @@
  * Exposes functions to interact with pagerDuty.
  */
 
-const { pdToken, pdSender, env } = require('./config.js');
-const config = require('./config.js')[env];
+const { pdToken, pdSender, env } = require('../config.js');
+const config = require('../config.js')[env];
 const bdk = require('@salesforce/refocus-bdk')(config);
 const request = require('superagent');
-const createTTE = require('./utils/tte.js').createTTE;
+const createTTE = require('./tte.js').createTTE;
 
 const { useNewPDBridge, pdBridgeUrl } = config;
 const USING_NEW_PD_BRIDGE = Boolean(useNewPDBridge && pdBridgeUrl);
@@ -31,25 +31,21 @@ const PD_URL = 'https://api.pagerduty.com';
  * @returns {Promise} - PagerDuty trigger promise
  */
 function triggerEvent(group, message, room) {
-  const obj =
-    {
-      'incident':
-        {
-          'type': 'incident',
-          'title': message,
-          'service':
-            {
-              'id': group,
-              'type': 'service_reference'
-            },
-          'body':
-            {
-              'type': 'incident_body',
-              'details': message,
-              'roomId': room
-            }
-        }
-    };
+  const obj = {
+    incident: {
+      type: 'incident',
+      title: message,
+      service: {
+        id: group,
+        type: 'service_reference',
+      },
+      body: {
+        type: 'incident_body',
+        details: message,
+        roomId: room,
+      },
+    },
+  };
 
   return new Promise((resolve) => {
     request
@@ -60,8 +56,8 @@ function triggerEvent(group, message, room) {
       .set('From', pdSender)
       .then((res) => {
         resolve(res);
-      }).catch((error) => bdk.log.error(
-        'pdTriggerEvent error', error));
+      })
+      .catch((error) => bdk.log.error('pdTriggerEvent error', error));
   });
 }
 
@@ -73,15 +69,14 @@ function triggerEvent(group, message, room) {
  */
 function queryServices(offset) {
   // Feature Flag
-  const url = USING_NEW_PD_BRIDGE ? pdBridgeUrl :
+  const url = USING_NEW_PD_BRIDGE ?
+    pdBridgeUrl :
     `${PD_URL}/services?limit=100&offset=${offset}`;
   return new Promise((resolve) => {
-    const req = request
-      .get(url)
-      .timeout({
-        response: 5000, // Wait 5 seconds for the server to start sending,
-        deadline: 30000, // but allow 30 seconds for the file to finish loading.
-      });
+    const req = request.get(url).timeout({
+      response: 5000, // Wait 5 seconds for the server to start sending,
+      deadline: 30000, // but allow 30 seconds for the file to finish loading.
+    });
     // Feature Flag
     if (!USING_NEW_PD_BRIDGE) {
       req
@@ -91,12 +86,13 @@ function queryServices(offset) {
     req
       .then((res) => {
         resolve(res);
-      }).catch((error) => {
+      })
+      .catch((error) => {
         bdk.log.error('pdServices error', error);
         resolve({
           body: {
-            more: true
-          }
+            more: true,
+          },
         });
       });
   });
@@ -131,16 +127,21 @@ function getIncidents(pdData) {
   const tteList = [];
   return new Promise((resolve) => {
     // eslint-disable-next-line consistent-return
-    Promise.all(pdData.map((obj) => {
-      if (obj.incident) {
-        return getIncidentDetail(obj.incident.id).then((result) => {
-          if (result.body) {
-            tteList.push(createTTE(obj.incident.id,
-              obj.service.summary, result));
-          }
-        });
-      }
-    })).then(() => resolve(tteList))
+    Promise.all(
+      pdData.map((obj) => {
+        if (obj.incident) {
+          return getIncidentDetail(obj.incident.id).then((result) => {
+            if (result.body) {
+              tteList.push(
+                createTTE(obj.incident.id, obj.service.summary, result)
+              );
+            }
+          });
+        }
+        return [];
+      })
+    )
+      .then(() => resolve(tteList))
       .catch((err) => bdk.log.error(err));
   });
 }
