@@ -1,7 +1,7 @@
 {
   "name": "Oncall-Bot",
   "displayName": "Oncall",
-  "version": "1.2.6",
+  "version": "1.2.7",
   "description": "A bot for PagerDuty integration",
   "url": "https://git.soma.salesforce.com/Refocus-Bots/Oncall-Bot",
   "engines": {
@@ -19,7 +19,7 @@
     "test-dev": "nodemon --ext js --watch ./ --exec 'mocha ./test'"
   },
   "dependencies": {
-    "@salesforce/refocus-bdk": "^1.10.1",
+    "@salesforce/refocus-bdk": ">1.10.1",
     "dotenv": "4.0.0",
     "email-validator": "^1.0.7",
     "express": "^4.16.4",
