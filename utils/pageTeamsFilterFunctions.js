@@ -18,8 +18,7 @@ function logInvalidArgs(name, returnValue) {
  * @returns {Array<Team>} - list of teams from teamsToPage which have not been already paged.
  */
 function removeAlreadyPagedTeams(incidentList, teamsToPage) {
-  if (!incidentList || !teamsToPage?.length)
-    return logInvalidArgs('removeAlreadyPagedTeams', []);
+  if (!incidentList || !teamsToPage?.length) return logInvalidArgs('removeAlreadyPagedTeams', []);
   const pagedTeams = incidentList.map((incident) => incident.service.id);
   return teamsToPage.filter((team) => !pagedTeams.includes(team.id));
 }
