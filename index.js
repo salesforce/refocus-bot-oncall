@@ -136,7 +136,6 @@ function handleEvents(event) {
  */
 function handleData(data) {
   bdk.log.debug('Bot Data Activity', data.new ? data.new.name : data.name);
-
   if (data.name === 'onCallIncidents') {
     const roomId = data.roomId;
     const newRoom = { roomId, botId: botName };
