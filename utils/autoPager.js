@@ -34,7 +34,8 @@ async function getIncidentsForRoom(roomId, botId) {
   const incidents = await bdk.getBotData(roomId, botId, 'onCallIncidents');
   if (!incidents?.body?.[0]?.value) return [];
   try {
-    return JSON.parse(incidents.body[0].value)?.incidents || [];
+    const value = JSON.parse(incidents.body[0].value)?.incidents || [];
+    return value;
   } catch (e) {
     bdk.log.error(
       `Room ${roomId} - Failed to parse incidents when autopaging.`,
