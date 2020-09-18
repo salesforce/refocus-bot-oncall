@@ -83,14 +83,14 @@ function createPagedEvent(incidentResponses, roomId) {
   let responseText = '';
   incidentResponses
     .filter((request) => request.statusCode === 201)
-    .map((successfulRequest) => successfulRequest.body.incident.service.summary)
+    .map((successfulRequest) => successfulRequest?.body?.incident?.service?.summary)
     .forEach((serviceName, i) => {
       responseText += i === 0 ? `Successfully Paged: ${serviceName}` : `, ${serviceName}`;
     });
 
   incidentResponses
-    .filter((request) => request.statusCode !== 201 && request.body.incident)
-    .map((unsuccessfulRequest) => unsuccessfulRequest.body.incident.service.summary)
+    .filter((request) => request.statusCode !== 201 && request?.body?.incident)
+    .map((unsuccessfulRequest) => unsuccessfulRequest?.body?.incident?.service?.summary)
     .forEach((serviceName, i) => {
       responseText += i === 0 ? ` Failed to Page: ${serviceName}` : `, ${serviceName}`;
     });
