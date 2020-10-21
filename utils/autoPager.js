@@ -19,6 +19,7 @@ const { compile } = require('handlebars');
 const config = require('../config.js')[env];
 const bdk = require('@salesforce/refocus-bdk')(config);
 const pagerDuty = require('./pagerDuty.js');
+const packageJSON = require('../package.json');
 const {
   removeAlreadyPagedTeams,
   removeTeamsWithoutMatchingSeverity
@@ -31,15 +32,16 @@ const {
  */
 async function getIncidentsForRoom(roomId, botId) {
   const incidents = await bdk.getBotData(roomId, botId, 'onCallIncidents');
-  if (!incidents?.body?.[0].value) return [];
+  if (!incidents?.body?.[0]?.value) return [];
   try {
-    return JSON.parse(incidents.body[0].value)?.incidents;
+    const value = JSON.parse(incidents.body[0].value)?.incidents || [];
+    return value;
   } catch (e) {
     bdk.log.error(
       `Room ${roomId} - Failed to parse incidents when autopaging.`,
       e
     );
-    return undefined;
+    return [];
   }
 }
 
@@ -73,6 +75,41 @@ async function getPagerAlertMessage(botData) {
 }
 
 /**
+ * Takes in the responses from pagerduty and generates a timeline event.
+ * @param {Array} incidentResponses - Responses from page requests to Pagerduty
+ * @param {number} roomId - Id of room in which page was sent
+ */
+function createPagedEvent(incidentResponses, roomId) {
+  let responseText = '';
+  incidentResponses
+    .filter((request) => request.statusCode === 201)
+    .map((successfulRequest) => successfulRequest?.body?.incident?.service?.summary)
+    .forEach((serviceName, i) => {
+      responseText += i === 0 ? `Successfully Paged: ${serviceName}` : `, ${serviceName}`;
+    });
+
+  incidentResponses
+    .filter((request) => request.statusCode !== 201 && request?.body?.incident)
+    .map((unsuccessfulRequest) => unsuccessfulRequest?.body?.incident?.service?.summary)
+    .forEach((serviceName, i) => {
+      responseText += i === 0 ? ` Failed to Page: ${serviceName}` : `, ${serviceName}`;
+    });
+
+  incidentResponses
+    .filter((request) => request.body.error && !request?.body?.incident)
+    .map((erroredRequest) => erroredRequest.body.error.errors)
+    .forEach((errors) => {
+      errors.forEach((error, i) => {
+        responseText += i === 0 ? error : `, ${error}`;
+      });
+    });
+  const log = packageJSON.name + ' has ' + responseText;
+  if (responseText === '') return;
+
+  bdk.createEvents(roomId, log, { type: 'Event', name: 'AutoPage' }, 'Event');
+}
+
+/**
  *
  * @param {object} botData - onCallBotData object.
  * @param {string} severity - current severity of case.
@@ -92,8 +129,29 @@ async function pageTeams(botData, severity) {
   );
   const pageMessage = await getPagerAlertMessage(botData);
   bdk.log.info(`Room ${roomId} - auto paging ${JSON.stringify(teamsToPage)}`);
-  teamsToPage.forEach((team) => {
-    pagerDuty.triggerEvent(team.id, pageMessage, roomId);
+  const pageRequests = teamsToPage
+    .map((team) => pagerDuty.triggerEvent(team.id, pageMessage, roomId));
+
+  Promise.all(pageRequests).then((incidents) => {
+    const newIncidents = incidents
+      .filter((request) => request.statusCode === 201)
+      .map((res) => ({
+        incident: {
+          id: res.body.incident.id,
+          url: res.body.incident.html_url,
+          number: res.body.incident.incident_number,
+        },
+        service: res.body.incident.service,
+        assignment: res.body.incident.assignments,
+      }));
+    newIncidents.forEach((incident) => {
+      bdk.log.info('Successfully Paged:', incident.incident.service);
+      bdk.log.info('Incident Id:', incident.incident.id);
+    });
+
+    incidentList.concat(newIncidents);
+    bdk.upsertBotData(roomId, botId, 'onCallIncidents', { incidents: incidentList });
+    createPagedEvent(incidents, roomId);
   });
 }
 
