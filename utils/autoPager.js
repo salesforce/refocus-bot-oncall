@@ -31,7 +31,7 @@ const {
  */
 async function getIncidentsForRoom(roomId, botId) {
   const incidents = await bdk.getBotData(roomId, botId, 'onCallIncidents');
-  if (!incidents?.body?.[0].value) return [];
+  if (incidents?.body?.[0]?.value === undefined) return [];
   try {
     return JSON.parse(incidents.body[0].value)?.incidents;
   } catch (e) {
