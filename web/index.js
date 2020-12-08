@@ -107,6 +107,22 @@ function createActionToGetRecommendations() {
   return bdk.createBotAction(serviceReq);
 }
 
+/**
+ * Current message is initially set as a JSON string,
+ * this function parses it to an object.
+ */
+function parseIncidentCommanderInCurrentMessage() {
+  if (currentVariables.incidentCommander) {
+    // Incident Commander value is JSON string, must be parsed.
+    try {
+      currentVariables.incidentCommander = JSON.parse(currentVariables.incidentCommander);
+      console.log(currentVariables.incidentCommander);
+    } catch (e) {
+      console.error(e);
+    }
+  }
+}
+
 const handleDataActionDispatcher = {
   'onCallBotServices': (data) => {
     currentServices = JSON.parse(data.detail.value);
@@ -117,6 +133,7 @@ const handleDataActionDispatcher = {
   },
   'onCallBotData': (data) => {
     currentVariables = JSON.parse(data.detail.value);
+    parseIncidentCommanderInCurrentMessage();
     const selTemplate = compile(currentTemplate);
     currentMessage = selTemplate(currentVariables).toString();
   },
@@ -286,6 +303,7 @@ function init() {
       currentServices = _services ? JSON.parse(_services.value) : {};
       currentVariables = _variables ?
         JSON.parse(_variables.value) : defaultVariables;
+      parseIncidentCommanderInCurrentMessage();
       currentTemplate = _template ? _template.value : defaultTemplate;
       currentRecommendations = _recommendations ?
         JSON.parse(_recommendations.value) : [];

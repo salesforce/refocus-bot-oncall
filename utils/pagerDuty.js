@@ -34,14 +34,14 @@ function triggerEvent(group, message, room) {
   const obj = {
     incident: {
       type: 'incident',
-      title: message,
+      title: message || 'IMC Incident',
       service: {
         id: group,
         type: 'service_reference',
       },
       body: {
         type: 'incident_body',
-        details: message,
+        details: message || 'IMC Incident',
         roomId: room,
       },
     },

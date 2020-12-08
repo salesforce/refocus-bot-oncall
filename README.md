@@ -99,3 +99,4 @@ Follows [semantic versioning](https://docs.npmjs.com/getting-started/semantic-ve
 * 1.2.7 Fixed TTE start time getting overridden by later entries.
 * 1.2.8 Added auto paging feature.
 * 1.2.9 Updated cache variables from HOST and PORT to simply URL
+* 1.3.0 Updated to accept new participant botData
